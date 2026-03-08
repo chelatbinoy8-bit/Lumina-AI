@@ -31,13 +31,9 @@
             align-items: center;
         }
 
-        /* Fixed Sophisticated Background */
         .blur-bg {
             position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: -1;
             background: 
                 radial-gradient(circle at 15% 15%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
@@ -109,25 +105,10 @@
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        form { display: flex; flex-direction: column; gap: 20px; }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-group label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-left: 5px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: 5px; }
 
         input {
             background: rgba(255,255,255,0.03);
@@ -165,13 +146,7 @@
             box-shadow: 0 10px 20px rgba(112, 0, 255, 0.3);
         }
 
-        #message {
-            font-size: 0.85rem;
-            text-align: center;
-            min-height: 20px;
-            margin-top: 10px;
-        }
-
+        #message { font-size: 0.85rem; text-align: center; min-height: 20px; margin-top: 10px; }
         .error { color: var(--error); }
         .success { color: var(--accent-secondary); }
 
@@ -179,9 +154,9 @@
         #onboarding {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(60px);
-            -webkit-backdrop-filter: blur(60px);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(80px);
+            -webkit-backdrop-filter: blur(80px);
             z-index: 1000;
             display: none;
             justify-content: center;
@@ -189,12 +164,7 @@
             padding: 20px;
         }
 
-        .onboarding-card {
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-
+        .onboarding-card { max-width: 600px; width: 100%; text-align: center; }
         .onboarding-card h2 {
             font-size: 2.5rem;
             margin-bottom: 10px;
@@ -209,6 +179,58 @@
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Subject Selection Grid */
+        .subject-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .subject-chip {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .subject-chip.selected {
+            background: var(--accent-secondary);
+            color: #000;
+            border-color: #fff;
+            font-weight: 600;
+        }
+
+        .subject-chip:hover {
+            border-color: var(--accent-secondary);
+        }
+
+        .api-info {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
     </style>
 </head>
 <body>
@@ -218,13 +240,11 @@
     <div class="auth-container" id="auth-ui">
         <div class="glass-card">
             <div class="logo">LUMINA</div>
-            
             <div class="tabs">
                 <div class="tab-slider" id="slider"></div>
                 <div class="tab active" id="tab-login" onclick="switchTab('login')">Login</div>
                 <div class="tab" id="tab-register" onclick="switchTab('register')">Register</div>
             </div>
-
             <form id="auth-form" onsubmit="handleAuth(event)">
                 <div class="input-group">
                     <label>Email Address</label>
@@ -234,7 +254,7 @@
                     <label>Password</label>
                     <input type="password" id="password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-auth" id="submit-btn">Continue</button>
+                <button type="submit" class="btn-auth">Continue</button>
                 <div id="message"></div>
             </form>
         </div>
@@ -242,9 +262,9 @@
 
     <!-- Onboarding Flow -->
     <div id="onboarding">
-        <div class="onboarding-card">
+        <div class="onboarding-card" id="ob-card-content">
             <div id="step-1" class="step active">
-                <h2 id="welcome-msg">Welcome to Lumina</h2>
+                <h2>Welcome to Lumina</h2>
                 <p style="color: var(--text-dim); margin-bottom: 30px;">Let's personalize your experience. What's your name?</p>
                 <input type="text" id="user-name" placeholder="Enter your name" style="width: 100%; margin-bottom: 20px;">
                 <button class="btn-auth" style="width: 100%;" onclick="nextStep(2)">Next</button>
@@ -252,22 +272,59 @@
 
             <div id="step-2" class="step">
                 <h2>Your Journey</h2>
-                <p style="color: var(--text-dim); margin-bottom: 30px;">How old are you? This helps us calibrate the AI level.</p>
+                <p style="color: var(--text-dim); margin-bottom: 30px;">How old are you? Helps calibrate the AI.</p>
                 <input type="number" id="user-age" placeholder="Age" style="width: 100%; margin-bottom: 20px;">
                 <button class="btn-auth" style="width: 100%;" onclick="nextStep(3)">Next</button>
             </div>
 
             <div id="step-3" class="step">
                 <h2>The Challenge</h2>
-                <p style="color: var(--text-dim); margin-bottom: 30px;">Which subjects do you find most difficult?</p>
-                <input type="text" id="user-subjects" placeholder="e.g. Quantum Physics, Organic Chemistry" style="width: 100%; margin-bottom: 20px;">
-                <button class="btn-auth" style="width: 100%;" onclick="finishOnboarding()">Complete Setup</button>
+                <p style="color: var(--text-dim); margin-bottom: 20px;">Select the subjects you find most difficult. We'll prioritize these.</p>
+                <div class="subject-grid" id="subject-list"></div>
+                <button class="btn-auth" style="width: 100%;" onclick="nextStep(4)">Next</button>
+            </div>
+
+            <div id="step-4" class="step">
+                <h2>Activate Lumina AI</h2>
+                <p style="color: var(--text-dim); margin-bottom: 20px;">To build your customized dashboard and solve your study challenges, we need your Gemini API Key.</p>
+                <input type="password" id="api-key" placeholder="Enter Gemini API Key" style="width: 100%; margin-bottom: 10px;">
+                <p class="api-info">Your key is stored locally on your device. We use it to personalize your roadmap and create smart summaries.</p>
+                <button class="btn-auth" style="width: 100%; margin-top: 20px;" onclick="finishOnboarding()">Activate & Enter</button>
             </div>
         </div>
     </div>
 
     <script>
+        const subjectsData = [
+            "Social Science", "History", "Geography", "Sociology", "Demography", "Democracy",
+            "Science", "Physics", "Chemistry", "Biology", "Mathematics",
+            "English", "Malayalam", "Hindi", "Economics", "Computer Science"
+        ];
+        
+        let selectedSubjects = [];
         let currentMode = 'login';
+
+        function initSubjects() {
+            const container = document.getElementById('subject-list');
+            container.innerHTML = '';
+            subjectsData.forEach(subject => {
+                const chip = document.createElement('div');
+                chip.className = 'subject-chip';
+                chip.innerText = subject;
+                chip.onclick = () => toggleSubject(subject, chip);
+                container.appendChild(chip);
+            });
+        }
+
+        function toggleSubject(subject, el) {
+            if (selectedSubjects.includes(subject)) {
+                selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                el.classList.remove('selected');
+            } else {
+                selectedSubjects.push(subject);
+                el.classList.add('selected');
+            }
+        }
 
         function switchTab(mode) {
             currentMode = mode;
@@ -275,9 +332,7 @@
             const loginTab = document.getElementById('tab-login');
             const regTab = document.getElementById('tab-register');
             const msg = document.getElementById('message');
-            
             msg.innerHTML = '';
-            
             if (mode === 'login') {
                 slider.style.transform = 'translateX(0)';
                 loginTab.classList.add('active');
@@ -294,39 +349,27 @@
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
             const msg = document.getElementById('message');
-
             let users = JSON.parse(localStorage.getItem('lumina_users') || '[]');
 
             if (currentMode === 'register') {
-                const existing = users.find(u => u.email === email);
-                if (existing) {
-                    msg.className = 'error';
-                    msg.innerHTML = 'Email already registered.';
-                    return;
+                if (users.find(u => u.email === email)) {
+                    msg.className = 'error'; msg.innerHTML = 'Email already registered.'; return;
                 }
                 users.push({ email, pass, onboarded: false });
                 localStorage.setItem('lumina_users', JSON.stringify(users));
-                msg.className = 'success';
-                msg.innerHTML = 'Registration successful! Now log in.';
+                msg.className = 'success'; msg.innerHTML = 'Registered! Now log in.';
                 setTimeout(() => switchTab('login'), 1200);
             } else {
                 const user = users.find(u => u.email === email && u.pass === pass);
                 if (user) {
-                    msg.className = 'success';
-                    msg.innerHTML = 'Accessing Lumina...';
+                    msg.className = 'success'; msg.innerHTML = 'Accessing Lumina...';
                     localStorage.setItem('lumina_session', JSON.stringify(user));
-
                     setTimeout(() => {
-                        if (!user.onboarded) {
-                            startOnboarding();
-                        } else {
-                            // Using a custom message box instead of alert to maintain sophistication
-                            msg.innerHTML = "Welcome back! Redirecting...";
-                        }
+                        if (!user.onboarded) startOnboarding();
+                        else window.location.href = 'student-home.html';
                     }, 800);
                 } else {
-                    msg.className = 'error';
-                    msg.innerHTML = 'Account not found or invalid credentials.';
+                    msg.className = 'error'; msg.innerHTML = 'Account not found.';
                 }
             }
         }
@@ -335,12 +378,16 @@
             document.getElementById('auth-ui').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('auth-ui').style.display = 'none';
-                const ob = document.getElementById('onboarding');
-                ob.style.display = 'flex';
+                document.getElementById('onboarding').style.display = 'flex';
+                initSubjects();
             }, 300);
         }
 
         function nextStep(step) {
+            if(step === 2 && !document.getElementById('user-name').value) return;
+            if(step === 3 && !document.getElementById('user-age').value) return;
+            if(step === 4 && selectedSubjects.length === 0) return;
+
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById(`step-${step}`).classList.add('active');
         }
@@ -348,25 +395,35 @@
         function finishOnboarding() {
             const name = document.getElementById('user-name').value;
             const age = document.getElementById('user-age').value;
-            const subjects = document.getElementById('user-subjects').value;
+            const apiKey = document.getElementById('api-key').value;
             const session = JSON.parse(localStorage.getItem('lumina_session'));
 
-            if(!name || !age || !subjects) return;
+            if(!apiKey) return;
 
             let users = JSON.parse(localStorage.getItem('lumina_users'));
             const userIndex = users.findIndex(u => u.email === session.email);
             
             users[userIndex].onboarded = true;
-            users[userIndex].profile = { name, age, subjects };
+            users[userIndex].profile = { 
+                name, 
+                age, 
+                subjects: selectedSubjects,
+                apiKey: apiKey 
+            };
             
             localStorage.setItem('lumina_users', JSON.stringify(users));
             localStorage.setItem('lumina_session', JSON.stringify(users[userIndex]));
 
             // Final transition
-            document.querySelector('.onboarding-card').innerHTML = `
+            const card = document.getElementById('ob-card-content');
+            card.innerHTML = `
                 <h2 style="font-size: 3rem;">Ready, ${name}.</h2>
-                <p style="color: var(--text-dim);">Your personalized mastery path is being prepared.</p>
+                <p style="color: var(--text-dim);" class="loading-dots">Building your AI-powered dashboard</p>
             `;
+
+            setTimeout(() => {
+                window.location.href = 'student-home.html';
+            }, 2000);
         }
 
         switchTab('login');
