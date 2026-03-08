@@ -15,6 +15,7 @@
             --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
+            --error: #ff4d4d;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -48,6 +49,23 @@
             padding: 40px;
             backdrop-filter: blur(40px);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* API Overlay */
+        #apiOverlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 5, 0.9);
+            border-radius: 32px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            backdrop-filter: blur(10px);
         }
 
         .step { display: none; animation: fadeIn 0.4s ease forwards; }
@@ -61,10 +79,10 @@
         h2 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; }
         p.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 0.95rem; }
 
-        .form-group { margin-bottom: 25px; }
+        .form-group { margin-bottom: 25px; text-align: left; width: 100%; }
         label { display: block; margin-bottom: 10px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
         
-        input[type="text"], input[type="date"], select, textarea {
+        input[type="text"], input[type="password"], input[type="date"], select, textarea {
             width: 100%;
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--glass-border);
@@ -73,7 +91,10 @@
             color: white;
             outline: none;
             font-size: 1rem;
+            transition: 0.3s;
         }
+
+        input:focus { border-color: var(--accent-blue); background: rgba(255,255,255,0.08); }
         
         select option { background: var(--bg-dark); color: white; }
 
@@ -193,6 +214,23 @@
     <div class="ambient-bg"></div>
 
     <div class="maker-card">
+        <!-- API KEY MODAL OVERLAY -->
+        <div id="apiOverlay">
+            <i data-lucide="key" size="48" style="color: var(--accent-blue); margin-bottom: 20px;"></i>
+            <h2>API Key Required</h2>
+            <p class="subtitle">Lumina needs your Gemini API key to analyze documents and brainstorm study paths.</p>
+            
+            <div class="form-group">
+                <label>Enter Gemini API Key</label>
+                <input type="password" id="apiInput" placeholder="Paste your key here...">
+            </div>
+            
+            <button class="btn-primary" onclick="saveApiKey()">Save and Continue</button>
+            <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 15px;">
+                Your key is stored locally in your browser.
+            </p>
+        </div>
+
         <!-- STEP 1: SUBJECT & DATE -->
         <div class="step active" id="step1">
             <h2>Set Your Destination</h2>
@@ -295,20 +333,38 @@
     </div>
 
     <script>
-        // API Configuration - Always check for empty string as placeholder
-        const apiKey = ""; 
+        // Internal configuration
+        const apiKeyPlaceholder = ""; // Built-in key if available
 
-        // Function to resolve API key from multiple sources
-        const getResolvedApiKey = () => {
-            // Priority 1: The constant variable at top
-            if (apiKey && apiKey.trim() !== "") return apiKey;
-            
-            // Priority 2: Local storage
+        // Resolve API key
+        function getResolvedApiKey() {
+            if (apiKeyPlaceholder && apiKeyPlaceholder.trim() !== "") return apiKeyPlaceholder;
             const storedKey = localStorage.getItem('gemini_api_key');
             if (storedKey && storedKey.trim() !== "") return storedKey;
-            
             return null;
-        };
+        }
+
+        // Save Key function
+        function saveApiKey() {
+            const val = document.getElementById('apiInput').value.trim();
+            if (!val) {
+                alert("Please enter a valid key.");
+                return;
+            }
+            localStorage.setItem('gemini_api_key', val);
+            checkApiStatus();
+        }
+
+        // Check if we need to show the key modal
+        function checkApiStatus() {
+            const key = getResolvedApiKey();
+            const overlay = document.getElementById('apiOverlay');
+            if (!key) {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
         
         let selectedGoal = null;
         let detectedChapters = [];
@@ -316,10 +372,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             loadProfileSubjects();
-            
-            if (!getResolvedApiKey()) {
-                console.error("Lumina: No Gemini API Key found. Please add it to 'gemini_api_key' in localStorage.");
-            }
+            checkApiStatus();
         });
 
         function loadProfileSubjects() {
@@ -372,14 +425,12 @@
         async function fetchWithRetry(url, options, maxRetries = 5) {
             const key = getResolvedApiKey();
             if (!key) {
-                const msg = "Gemini API Key missing. Please ensure 'gemini_api_key' is set in your local storage or provided in the code.";
-                alert(msg);
+                checkApiStatus();
                 throw new Error("Missing API Key");
             }
             
             for (let i = 0; i < maxRetries; i++) {
                 try {
-                    // Correct URL formatting for Gemini API
                     const fullUrl = `${url}?key=${key}`;
                     const response = await fetch(fullUrl, options);
                     
@@ -496,10 +547,17 @@
         function handleAiError(e, subject) {
             console.error("Gemini Error:", e);
             document.getElementById('aiStatus').innerText = "AI Error: " + (e.message || "Unknown error");
-            setTimeout(() => {
-                document.getElementById('aiStatus').innerText = "Using smart placeholders as fallback...";
-                fallbackChapters(subject);
-            }, 2000);
+            
+            // If the error looks like an auth issue, clear the key and show overlay
+            if (e.message.toLowerCase().includes("key") || e.message.includes("401") || e.message.includes("403")) {
+                localStorage.removeItem('gemini_api_key');
+                setTimeout(() => checkApiStatus(), 2000);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('aiStatus').innerText = "Using smart placeholders as fallback...";
+                    fallbackChapters(subject);
+                }, 2000);
+            }
         }
 
         function fallbackChapters(subject) {
