@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Smart Summaries</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --accent-purple: #7000ff;
+            --accent-blue: #00d4ff;
+            --accent-yellow: #ffd700;
+            --accent-green: #00ff88;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --sidebar-w: 320px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar for Quiz Feedback & Info */
+        .sidebar {
+            width: var(--sidebar-w);
+            border-right: 1px solid var(--glass-border);
+            background: rgba(10, 10, 10, 0.95);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            font-weight: 800;
+            font-size: 0.75rem;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #feedback-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .feedback-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease-out;
+            font-size: 0.9rem;
+        }
+
+        .feedback-correct { border-left: 4px solid var(--accent-green); }
+        .feedback-wrong { border-left: 4px solid #ff4b4b; }
+
+        /* Main Content */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 60px 40px;
+            scroll-behavior: smooth;
+        }
+
+        .summary-container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .header { margin-bottom: 50px; }
+        .header h1 { font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
+        .header p { color: var(--accent-blue); font-weight: 700; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+
+        /* Component Styles */
+        .definition-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            border-radius: 20px;
+            margin: 24px 0;
+            position: relative;
+        }
+        .definition-box strong { color: var(--accent-blue); font-size: 1.1rem; display: block; margin-bottom: 8px; }
+
+        .extra-fact-box {
+            border: 1px dashed #7000ff88;
+            background: rgba(112, 0, 255, 0.05);
+            padding: 20px;
+            border-radius: 16px;
+            margin: 24px 0;
+        }
+        .extra-fact-tag {
+            color: var(--accent-purple);
+            font-weight: 800;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .highlight-yellow {
+            background: rgba(255, 215, 0, 0.15);
+            border-bottom: 2px solid var(--accent-yellow);
+            color: #fff;
+            padding: 2px 0;
+        }
+
+        .main-point {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            color: #e0e0e0;
+        }
+        .point-bullet { color: var(--accent-purple); font-weight: 900; }
+
+        /* Quiz UI */
+        #quiz-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .quiz-card {
+            background: #0a0a0a;
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 550px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--glass-border);
+            margin: 25px 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-yellow);
+        }
+
+        .quiz-option {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 18px 24px;
+            margin: 12px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+        }
+
+        .quiz-option:hover { 
+            border-color: var(--accent-blue); 
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        #loading { text-align: center; padding: 120px 20px; }
+        .spin { animation: rotate 2s linear infinite; }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i data-lucide="brain-circuit" size="18"></i>
+            Quiz Analytics
+        </div>
+        <div id="feedback-area">
+            <div class="feedback-card" style="color: var(--text-dim); border-style: dashed;">
+                Read through the summary. A sudden "Flash Quiz" will appear soon based on theory.
+            </div>
+        </div>
+        <button onclick="location.href='dashboard.html'" style="margin-top: auto; background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 14px; border-radius: 14px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="arrow-left" size="16"></i>
+            Exit to Plan
+        </button>
+    </aside>
+
+    <main class="content-area">
+        <div id="loading">
+            <i data-lucide="loader-2" size="48" class="spin" style="color: var(--accent-blue); margin-bottom: 24px;"></i>
+            <h2 style="font-weight: 700;">Synthesizing Syllabus...</h2>
+            <p style="color: var(--text-dim); margin-top: 8px;">Lumina is extracting key theory and definitions.</p>
+        </div>
+
+        <div class="summary-container" id="summary-content" style="display: none;">
+            <header class="header">
+                <p id="sub-tag">Loading...</p>
+                <h1 id="chapter-title">Loading...</h1>
+            </header>
+            
+            <div id="dynamic-text">
+                <!-- AI Content Injected Here -->
+            </div>
+        </div>
+    </main>
+
+    <div id="quiz-overlay">
+        <div class="quiz-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.7rem; color: var(--accent-yellow); font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">Sudden Quiz</span>
+                <span id="timer-text" style="font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent-yellow);"></span>
+            </div>
+            <h2 id="quiz-question" style="margin: 20px 0; font-size: 1.4rem; line-height: 1.4;"></h2>
+            <div class="timer-bar"><div class="timer-fill" id="timer"></div></div>
+            <div id="quiz-options"></div>
+        </div>
+    </div>
+
+    <script>
+        const groqKey = localStorage.getItem('lumina_groq_key');
+        const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
+        let currentQuiz = null;
+        let timerInterval = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            if (plan) {
+                const activeChapter = plan.chapters.find(c => !c.completed) || plan.chapters[0];
+                document.getElementById('chapter-title').innerText = activeChapter.title;
+                document.getElementById('sub-tag').innerText = plan.subject;
+                await generateSummaries(activeChapter);
+            }
+        });
+
+        async function generateSummaries(chapter) {
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${groqKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            {
+                                role: "system",
+                                content: `You are a strict curriculum-aligned AI educator.
+                                TASK:
+                                1. Read the provided Syllabus Text and Topic.
+                                2. Expand ONLY on the concepts mentioned in the syllabus. Do not hallucinate external topics unless marked as "extra_fact".
+                                3. Provide structured definitions, main points, and an expanded theory narrative.
+                                4. Identify critical phrases to highlight in yellow.
+                                5. Create a theoretical "Sudden Quiz" (multiple choice) that tests understanding of the theory, not just facts.
+                                
+                                JSON FORMAT:
+                                {
+                                  "definitions": [{"term": "...", "definition": "..."}],
+                                  "points": [{"text": "...", "isHighlighted": boolean}],
+                                  "extra_facts": [{"title": "...", "text": "..."}],
+                                  "narrative": "A detailed explanation strictly following the syllabus flow.",
+                                  "sudden_quiz": {"question": "...", "options": ["...", "...", "..."], "correct_index": 0, "explanation": "..."}
+                                }`
+                            },
+                            {
+                                role: "user",
+                                content: `Subject: ${plan.subject}. Topic: ${chapter.title}. Syllabus Context: ${chapter.details}.`
+                            }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                const data = await response.json();
+                const content = JSON.parse(data.choices[0].message.content);
+                renderContent(content);
+                
+                // Sudden quiz triggers between 12-20 seconds for deep reading immersion
+                setTimeout(() => triggerQuiz(content.sudden_quiz), 15000);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerHTML = "<h3>Error Generating Content</h3><p>Please check your connection or Groq Key.</p>";
+            }
+        }
+
+        function renderContent(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('summary-content').style.display = 'block';
+            
+            const container = document.getElementById('dynamic-text');
+            let html = ``;
+
+            // Definitions Section
+            if(data.definitions?.length > 0) {
+                html += `<div style="margin-top: 20px;">`;
+                data.definitions.forEach(d => {
+                    html += `<div class="definition-box"><strong>${d.term}</strong><p>${d.definition}</p></div>`;
+                });
+                html += `</div>`;
+            }
+
+            // Points Section
+            html += `<h3 style="margin: 40px 0 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;"><i data-lucide="list-checks" style="color: var(--accent-blue);"></i> Core Concepts</h3>`;
+            data.points.forEach((p, i) => {
+                const text = p.isHighlighted ? `<span class="highlight-yellow">${p.text}</span>` : p.text;
+                html += `<div class="main-point"><span class="point-bullet">${(i+1).toString().padStart(2, '0')}</span><div>${text}</div></div>`;
+            });
+
+            // Narrative Section
+            html += `<h3 style="margin: 40px 0 20px; font-weight: 800;">Theory Walkthrough</h3>`;
+            html += `<div style="line-height: 1.8; color: #ccc; font-size: 1.1rem; margin-bottom: 40px;">${data.narrative}</div>`;
+
+            // Extra Facts Section
+            if(data.extra_facts?.length > 0) {
+                data.extra_facts.forEach(f => {
+                    html += `
+                        <div class="extra-fact-box">
+                            <span class="extra-fact-tag">Extra Fact: ${f.title}</span>
+                            <p style="font-size: 0.95rem; line-height: 1.5; color: #bbb;">${f.text}</p>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function triggerQuiz(quiz) {
+            if (!quiz) return;
+            currentQuiz = quiz;
+            const overlay = document.getElementById('quiz-overlay');
+            const timerFill = document.getElementById('timer');
+            const timerText = document.getElementById('timer-text');
+            
+            document.getElementById('quiz-question').innerText = quiz.question;
+            const optContainer = document.getElementById('quiz-options');
+            optContainer.innerHTML = '';
+            
+            quiz.options.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'quiz-option';
+                div.innerText = opt;
+                div.onclick = () => selectAnswer(idx);
+                optContainer.appendChild(div);
+            });
+
+            overlay.style.display = 'flex';
+            
+            // Logic: 5-10 seconds total. We calculate based on word count.
+            let secondsLeft = Math.min(Math.max(Math.ceil(quiz.question.split(' ').length / 2), 5), 10);
+            const totalTime = secondsLeft;
+            
+            timerText.innerText = `${secondsLeft}s`;
+            timerFill.style.width = '100%';
+            
+            const tick = setInterval(() => {
+                secondsLeft--;
+                timerText.innerText = `${secondsLeft}s`;
+                timerFill.style.width = `${(secondsLeft/totalTime)*100}%`;
+                if(secondsLeft <= 0) {
+                    clearInterval(tick);
+                    selectAnswer(-1);
+                }
+            }, 1000);
+
+            timerInterval = tick;
+        }
+
+        function selectAnswer(idx) {
+            clearInterval(timerInterval);
+            const overlay = document.getElementById('quiz-overlay');
+            const feedback = document.getElementById('feedback-area');
+            overlay.style.display = 'none';
+
+            const isCorrect = idx === currentQuiz.correct_index;
+            const card = document.createElement('div');
+            card.className = `feedback-card ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`;
+            
+            card.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 10px; color: ${isCorrect ? 'var(--accent-green)' : '#ff4b4b'}">
+                    <i data-lucide="${isCorrect ? 'check-circle' : 'x-circle'}" size="16"></i>
+                    ${isCorrect ? 'Perfect Recall' : 'Gap Detected'}
+                </div>
+                <div style="color: #eee; line-height: 1.5;">${currentQuiz.explanation}</div>
+                <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-dim); border-top: 1px solid var(--glass-border); padding-top: 8px;">
+                    Theory focus: ${currentQuiz.question.substring(0, 40)}...
+                </div>
+            `;
+
+            feedback.prepend(card);
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
