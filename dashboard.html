@@ -194,9 +194,6 @@
                 item.className = 'chapter-item';
                 if(ch.completed) item.style.borderLeft = '4px solid var(--accent-purple)';
                 
-                // We stringify the chapter data to pass it safely through a function
-                const chapterData = JSON.stringify({ title: ch.title, details: ch.details });
-
                 item.innerHTML = `
                     <div class="chapter-main">
                         <div class="check ${ch.completed ? 'done' : ''}" onclick="toggle(${i})"></div>
@@ -206,23 +203,23 @@
                         </div>
                     </div>
                     <div class="study-modes">
-                        <button onclick='navigateWithContext("aichat.html", ${chapterData})' class="mode-btn">
+                        <button onclick='navigateWithContext("aichat.html", ${i})' class="mode-btn">
                             <i data-lucide="message-circle" size="20"></i>
                             <span>Socratic Tutoring</span>
                         </button>
-                        <button onclick='navigateWithContext("knowledge-graphs.html", ${chapterData})' class="mode-btn">
+                        <button onclick='navigateWithContext("knowledge-graphs.html", ${i})' class="mode-btn">
                             <i data-lucide="git-branch" size="20"></i>
                             <span>Knowledge Graph</span>
                         </button>
-                        <button onclick='navigateWithContext("summaries.html", ${chapterData})' class="mode-btn">
+                        <button onclick='navigateWithContext("summaries.html", ${i})' class="mode-btn">
                             <i data-lucide="file-text" size="20"></i>
                             <span>Cornell Notes</span>
                         </button>
-                        <button onclick='navigateWithContext("flashcards.html", ${chapterData})' class="mode-btn">
+                        <button onclick='navigateWithContext("flashcards.html", ${i})' class="mode-btn">
                             <i data-lucide="layers" size="20"></i>
                             <span>SRS Deck</span>
                         </button>
-                        <button onclick='navigateWithContext("exams.html", ${chapterData})' class="mode-btn">
+                        <button onclick='navigateWithContext("exams.html", ${i})' class="mode-btn">
                             <i data-lucide="medal" size="20"></i>
                             <span>Mock Exam</span>
                         </button>
@@ -239,15 +236,20 @@
         }
 
         /**
-         * Saves the specific chapter context before navigating.
-         * This allows the AI tools to know exactly what the student clicked on.
+         * Saves the specific chapter index before navigating.
+         * Using the INDEX is safer than just passing the title because it avoids 
+         * duplication issues if multiple chapters have similar titles.
          */
-        function navigateWithContext(url, chapterInfo) {
-            // Update the global active plan to reflect the "Current Focus"
+        function navigateWithContext(url, index) {
             const currentPlan = JSON.parse(localStorage.getItem('lumina_active_plan'));
-            currentPlan.currentChapter = chapterInfo.title;
-            currentPlan.currentDetails = chapterInfo.details;
+            const chapter = currentPlan.chapters[index];
             
+            // Set the focus context
+            currentPlan.currentChapter = chapter.title;
+            currentPlan.currentDetails = chapter.details;
+            
+            // Store index and updated plan
+            localStorage.setItem('lumina_active_chapter_index', index);
             localStorage.setItem('lumina_active_plan', JSON.stringify(currentPlan));
             
             // Redirect to the tool
@@ -263,6 +265,7 @@
         function reset() {
             if(confirm("Are you sure you want to discard this roadmap and start a new one?")) {
                 localStorage.removeItem('lumina_active_plan');
+                localStorage.removeItem('lumina_active_chapter_index');
                 window.location.href = 'index.html';
             }
         }
