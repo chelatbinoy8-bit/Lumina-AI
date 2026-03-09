@@ -3,355 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina | SRS Flashcards</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Lumina | Flashcards</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-dark: #050505;
-            --accent-purple: #7000ff;
-            --accent-blue: #00d4ff;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --text-main: #ffffff;
-            --text-dim: #a0a0a0;
+            --bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --accent: #00d4ff;
+            --text: #ffffff;
         }
-
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             overflow: hidden;
         }
-
-        #loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--glass-border);
-            border-top: 3px solid var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .container {
-            width: 90%;
-            max-width: 500px;
-            display: none;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .header { text-align: center; }
-
-        .topic-tag {
-            background: rgba(0, 212, 255, 0.1);
-            color: var(--accent-blue);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        .card-wrapper {
-            perspective: 1000px;
-            height: 350px;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-
-        .card-inner.flipped { transform: rotateY(180deg); }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            border-radius: 32px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            font-size: 1.25rem;
-            font-weight: 600;
-            line-height: 1.5;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            overflow-y: auto;
-        }
-
-        .card-back {
-            transform: rotateY(180deg);
-            background: linear-gradient(145deg, rgba(112, 0, 255, 0.05), rgba(0, 212, 255, 0.05));
-            color: var(--text-main);
-            font-weight: 400;
-            font-size: 1.1rem;
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: var(--glass-border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        #progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue));
-            transition: width 0.3s ease;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn:hover { background: rgba(255,255,255,0.1); border-color: white; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        #results {
-            display: none;
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .error-box {
-            background: rgba(255, 59, 48, 0.1);
-            border: 1px solid rgba(255, 59, 48, 0.3);
-            color: #ff3b30;
-            padding: 20px;
-            border-radius: 16px;
+        #status { text-align: center; padding: 20px; }
+        .card {
+            background: var(--card-bg);
+            width: 85vw;
             max-width: 400px;
-            display: none;
+            height: 250px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
         }
+        .controls { display: flex; gap: 20px; align-items: center; }
+        .btn {
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .btn:disabled { opacity: 0.3; }
+        .progress { color: #888; font-size: 0.9rem; }
+        #app { display: none; flex-direction: column; align-items: center; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p id="loader-text" style="color: var(--text-dim); font-weight: 600;">Brewing AI Flashcards...</p>
+    <div id="status">
+        <div id="loader">
+            <h2 id="status-text">Creating your deck...</h2>
+        </div>
+        <button id="retry-btn" class="btn" style="display:none" onclick="location.reload()">Try Again</button>
     </div>
 
-    <div id="error-display" class="error-box">
-        <h3 style="margin-top:0">Generation Failed</h3>
-        <p id="error-message">Check your connection or try again.</p>
-        <button class="btn" onclick="location.reload()" style="margin: 0 auto;">Retry</button>
-    </div>
-
-    <div class="container" id="main-ui">
-        <div class="header">
-            <span class="topic-tag" id="topic-name">Topic</span>
-            <h2 id="chapter-title" style="font-size: 1.5rem; margin-bottom: 5px;">Chapter</h2>
-        </div>
-
-        <div class="progress-container">
-            <div id="progress-bar"></div>
-        </div>
-
-        <div class="card-wrapper" onclick="flipCard()">
-            <div class="card-inner" id="card-inner">
-                <div class="card-face card-front" id="card-front">...</div>
-                <div class="card-face card-back" id="card-back">...</div>
-            </div>
-        </div>
-
+    <div id="app">
+        <h3 id="topic-title" style="color: var(--accent); margin-bottom: 10px;">Topic</h3>
+        <div class="card" id="card-content">Loading...</div>
         <div class="controls">
-            <button class="btn" id="prevBtn" onclick="prevCard()" disabled>
-                <i data-lucide="arrow-left"></i>
-            </button>
-            <div id="card-counter" style="color: var(--text-dim); font-weight: 600;">1 / 0</div>
-            <button class="btn" id="nextBtn" onclick="nextCard()">
-                <span>Next</span>
-                <i data-lucide="arrow-right"></i>
-            </button>
+            <button class="btn" id="prev" onclick="changeCard(-1)"><i data-lucide="chevron-left"></i></button>
+            <span class="progress" id="counter">0 / 0</span>
+            <button class="btn" id="next" onclick="changeCard(1)"><i data-lucide="chevron-right"></i></button>
         </div>
-    </div>
-
-    <div id="results" class="container">
-        <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">Session Complete!</h1>
-        <p style="color: var(--text-dim); margin-bottom: 30px;">Knowledge has been reinforced. Ready for the next one?</p>
-        <button class="btn" style="width: 100%; justify-content: center; background: var(--accent-purple);" onclick="window.location.href='dashboard.html'">
-            Return to Dashboard
-        </button>
     </div>
 
     <script>
-        const apiKey = ""; // Managed by environment
-        let deck = [];
-        let currentIndex = 0;
+        const apiKey = ""; // Set by environment
+        let points = [];
+        let index = 0;
 
-        // Load data from Storage
+        // Get topic from your existing local storage keys
         const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
         const chapterIdx = localStorage.getItem('lumina_active_chapter_index');
-        const chapter = plan ? plan.chapters[chapterIdx] : null;
+        const topic = plan ? plan.chapters[chapterIdx]?.title : "General Study";
 
-        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+        async function callAiWithRetry(prompt, retries = 5, delay = 1000) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
             try {
-                const response = await fetch(url, options);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
-            } catch (err) {
-                if (retries <= 0) throw err;
-                await new Promise(resolve => setTimeout(resolve, backoff));
-                return fetchWithRetry(url, options, retries - 1, backoff * 2);
-            }
-        }
-
-        async function generateFlashcards() {
-            if (!chapter) {
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
-            document.getElementById('topic-name').innerText = plan.subject;
-            document.getElementById('chapter-title').innerText = chapter.title;
-
-            const prompt = `Generate exactly 15 study flashcards for the topic: "${chapter.title}". 
-            Detailed Context: ${chapter.details || 'General study material'}.
-            Each flashcard must have a "question" (active recall based) and a "answer" (concise explanation).
-            Respond with JSON only: [{"question": "...", "answer": "..."}]`;
-
-            try {
-                const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { 
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        question: { type: "STRING" },
-                                        answer: { type: "STRING" }
-                                    },
-                                    required: ["question", "answer"]
-                                }
-                            }
-                        }
+                        contents: [{ parts: [{ text: prompt }] }]
                     })
                 });
 
-                const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (!content) throw new Error("Empty AI response");
-                
-                deck = JSON.parse(content);
-                if (!Array.isArray(deck) || deck.length === 0) throw new Error("Invalid deck format");
-
-                showUI();
-                updateCard();
-            } catch (error) {
-                console.error("Deck generation failed:", error);
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('error-display').style.display = 'block';
-                document.getElementById('error-message').innerText = error.message;
+                if (!response.ok) throw new Error("API Limit or Connection Issue");
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(r => setTimeout(r, delay));
+                    return callAiWithRetry(prompt, retries - 1, delay * 2);
+                }
+                throw err;
             }
         }
 
-        function showUI() {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'flex';
+        async function init() {
+            document.getElementById('topic-title').innerText = topic;
+            
+            const prompt = `Summarize the topic "${topic}" into a list of 8-10 short, simple study points. 
+            Format the response as a simple bulleted list with '-' at the start of each line. 
+            Keep each point under 15 words.`;
+
+            try {
+                const text = await callAiWithRetry(prompt);
+                // Split text by lines starting with - or numbers
+                points = text.split('\n')
+                             .map(line => line.replace(/^[-*•\d.]+\s*/, '').trim())
+                             .filter(line => line.length > 5);
+
+                if (points.length === 0) throw new Error("Could not parse points");
+
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                updateUI();
+            } catch (error) {
+                document.getElementById('status-text').innerText = "Failed to load: " + error.message;
+                document.getElementById('retry-btn').style.display = 'inline-block';
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('card-content').innerText = points[index];
+            document.getElementById('counter').innerText = `${index + 1} / ${points.length}`;
+            document.getElementById('prev').disabled = index === 0;
+            document.getElementById('next').innerHTML = index === points.length - 1 ? 
+                '<i data-lucide="check"></i>' : '<i data-lucide="chevron-right"></i>';
             lucide.createIcons();
         }
 
-        function updateCard() {
-            const card = deck[currentIndex];
-            const inner = document.getElementById('card-inner');
-            
-            inner.classList.remove('flipped');
-            
-            setTimeout(() => {
-                document.getElementById('card-front').innerText = card.question;
-                document.getElementById('card-back').innerText = card.answer;
-                
-                const progress = ((currentIndex + 1) / deck.length) * 100;
-                document.getElementById('progress-bar').style.width = `${progress}%`;
-                document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${deck.length}`;
-                
-                document.getElementById('prevBtn').disabled = currentIndex === 0;
-                document.getElementById('nextBtn').innerHTML = currentIndex === deck.length - 1 ? 
-                    '<span>Finish</span> <i data-lucide="check"></i>' : 
-                    '<span>Next</span> <i data-lucide="arrow-right"></i>';
-                
-                lucide.createIcons();
-            }, 200);
-        }
-
-        function flipCard() {
-            document.getElementById('card-inner').classList.toggle('flipped');
-        }
-
-        function nextCard() {
-            if (currentIndex < deck.length - 1) {
-                currentIndex++;
-                updateCard();
-            } else {
-                document.getElementById('main-ui').style.display = 'none';
-                document.getElementById('results').style.display = 'flex';
+        function changeCard(step) {
+            index += step;
+            if (index >= points.length) {
+                alert("Deck complete!");
+                index = points.length - 1;
+                return;
             }
+            if (index < 0) index = 0;
+            updateUI();
         }
 
-        function prevCard() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                updateCard();
-            }
-        }
-
-        window.onload = generateFlashcards;
+        window.onload = init;
     </script>
 </body>
 </html>
