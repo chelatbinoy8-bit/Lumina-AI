@@ -70,7 +70,6 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .concept-card {
@@ -97,16 +96,12 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            transition: 0.3s;
         }
-
-        .btn-generate:hover { transform: scale(1.02); filter: brightness(1.1); }
-        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
 
         #loader {
             position: absolute;
             inset: 0;
-            background: rgba(5,5,5,0.8);
+            background: rgba(5,5,5,0.85);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -143,10 +138,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: 0.2s;
         }
-
-        .control-btn:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -155,7 +147,7 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 20px; font-weight: 600; letter-spacing: 1px;">AI MAPPING CONNECTIONS...</p>
+        <p style="margin-top: 20px; font-weight: 600; letter-spacing: 1px;">CONNECTING CONCEPTS...</p>
     </div>
 
     <nav>
@@ -164,24 +156,24 @@
             <span class="logo">LUMINA</span>
         </div>
         <div style="text-align: right;">
-            <div id="chapter-name" style="font-weight: 700; font-size: 1rem;">Chapter View</div>
-            <div id="subject-name" style="color: var(--accent-blue); font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Subject</div>
+            <div id="chapter-name" style="font-weight: 700; font-size: 1rem;">Context Map</div>
+            <div id="subject-name" style="color: var(--accent-blue); font-size: 0.75rem; text-transform: uppercase;">Subject</div>
         </div>
     </nav>
 
     <main>
         <div class="sidebar">
-            <h3 style="font-size: 1.2rem; font-weight: 800;">The Big Picture</h3>
-            <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.5;">See how your current study topics link to other subjects and real-world concepts.</p>
+            <h3 style="font-size: 1.2rem; font-weight: 800;">Discovery Map</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim);">Tap 'Generate' to see how this topic relates to the rest of the world.</p>
             
             <button class="btn-generate" id="gen-btn" onclick="generateGraph()">
-                <i data-lucide="sparkles" size="18"></i>
-                Create Connection Map
+                <i data-lucide="zap" size="18"></i>
+                Generate Graph
             </button>
 
             <div id="concept-card" class="concept-card">
                 <h4 id="node-label" style="color: var(--accent-blue); font-size: 1.1rem; margin-bottom: 5px;">Concept</h4>
-                <div id="node-tag" style="font-size: 0.7rem; font-weight: 700; background: var(--accent-purple); color: white; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-bottom: 12px;">SUBJECT</div>
+                <div id="node-tag" style="font-size: 0.7rem; font-weight: 700; background: var(--accent-purple); color: white; padding: 3px 8px; border-radius: 6px; display: inline-block; margin-bottom: 12px;">FIELD</div>
                 <p id="node-desc" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-dim);"></p>
             </div>
         </div>
@@ -197,7 +189,7 @@
 
     <script>
         let cy;
-        const apiKey = ""; // Provided at runtime
+        const apiKey = ""; 
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -208,7 +200,7 @@
         function loadContext() {
             const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
             if (plan) {
-                document.getElementById('chapter-name').innerText = plan.currentChapter || "New Concept";
+                document.getElementById('chapter-name').innerText = plan.currentChapter || "Current Topic";
                 document.getElementById('subject-name').innerText = plan.subject || "General Study";
             }
         }
@@ -224,33 +216,21 @@
                             'background-color': 'data(color)',
                             'color': '#fff',
                             'font-family': 'Inter',
-                            'font-size': '12px',
-                            'font-weight': '600',
-                            'text-valign': 'center',
-                            'width': 'mapData(weight, 1, 10, 40, 70)',
-                            'height': 'mapData(weight, 1, 10, 40, 70)',
-                            'text-outline-width': 2,
-                            'text-outline-color': '#000',
-                            'overlay-padding': '8px'
+                            'font-size': '10px',
+                            'text-valign': 'bottom',
+                            'text-margin-y': 5,
+                            'width': 35,
+                            'height': 35,
+                            'text-outline-width': 1,
+                            'text-outline-color': '#000'
                         }
                     },
                     {
                         selector: 'edge',
                         style: {
-                            'width': 2,
-                            'line-color': 'rgba(255,255,255,0.15)',
-                            'curve-style': 'bezier',
-                            'target-arrow-shape': 'triangle',
-                            'target-arrow-color': 'rgba(255,255,255,0.15)'
-                        }
-                    },
-                    {
-                        selector: 'node:selected',
-                        style: {
-                            'border-width': 4,
-                            'border-color': '#fff',
-                            'background-color': '#fff',
-                            'color': '#000'
+                            'width': 1,
+                            'line-color': 'rgba(255,255,255,0.1)',
+                            'curve-style': 'haystack'
                         }
                     }
                 ]
@@ -274,77 +254,60 @@
             if (!plan) return;
 
             document.getElementById('loader').style.display = 'flex';
-            document.getElementById('gen-btn').disabled = true;
             
-            const prompt = `Topic: ${plan.currentChapter} in ${plan.subject}. 
-            Identify 7 key concepts. For each, find ONE connection to a DIFFERENT field (e.g. Science to History).
-            Return ONLY a JSON object:
-            {
-              "nodes": [
-                {"id": "n1", "label": "Topic Name", "subject": "Field", "description": "1 sentence explain", "color": "#00d4ff", "weight": 8},
-                ...
-              ],
-              "edges": [
-                {"source": "n1", "target": "n2"}
-              ]
-            }
-            Use hex #00d4ff for core subject and #7000ff for interdisciplinary links.`;
+            // Simpler prompt for the AI
+            const prompt = `Topic: ${plan.currentChapter} (${plan.subject}). 
+            List 8 related concepts across different fields.
+            Format strictly as a simple JSON array of objects:
+            {"nodes": [{"id": "1", "label": "Name", "subject": "Field", "description": "Short summary", "color": "#00d4ff"}], 
+             "edges": [{"source": "1", "target": "2"}]}`;
 
             try {
-                const response = await callGemini(prompt, userKey);
-                // Clean the response in case AI adds markdown code blocks
-                const cleanedJson = response.replace(/```json|```/g, "").trim();
-                const data = JSON.parse(cleanedJson);
+                const responseText = await callGemini(prompt, userKey);
                 
+                // Robust JSON Extraction
+                let data;
+                try {
+                    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                    data = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+                } catch (e) {
+                    throw new Error("Invalid AI formatting");
+                }
+
                 cy.elements().remove();
                 cy.add({
                     nodes: data.nodes.map(n => ({ data: n })),
-                    edges: data.edges.map(e => ({ data: e }))
+                    edges: (data.edges || []).map(e => ({ data: e }))
                 });
 
-                // Use the 'cose' layout for a more natural, spread-out organic look
-                cy.layout({ 
-                    name: 'cose', 
-                    animate: true,
-                    padding: 60,
-                    nodeOverlap: 20,
-                    componentSpacing: 100
-                }).run();
-
-                document.getElementById('gen-btn').innerHTML = '<i data-lucide="refresh-cw" size="18"></i> Regenerate';
+                // Faster layout
+                cy.layout({ name: 'circle', padding: 80 }).run();
+                
+                document.getElementById('gen-btn').innerHTML = '<i data-lucide="refresh-cw" size="18"></i> Remap';
                 lucide.createIcons();
             } catch (e) {
-                console.error("Graph Error:", e);
-                alert("The AI had trouble building this specific map. Please try again.");
+                console.error(e);
+                // Fallback UI
+                document.getElementById('loader').innerHTML = `
+                    <p style="color: #ff4b4b;">Generation failed. Trying again...</p>
+                `;
+                setTimeout(generateGraph, 2000);
             } finally {
                 document.getElementById('loader').style.display = 'none';
-                document.getElementById('gen-btn').disabled = false;
             }
         }
 
         async function callGemini(prompt, userKey) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
-            let retries = 0;
-            const maxRetries = 5;
-
-            while (retries <= maxRetries) {
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            generationConfig: { responseMimeType: "application/json" }
-                        })
-                    });
-                    const data = await res.json();
-                    return data.candidates[0].content.parts[0].text;
-                } catch (e) {
-                    if (retries === maxRetries) throw e;
-                    await new Promise(r => setTimeout(r, Math.pow(2, retries) * 1000));
-                    retries++;
-                }
-            }
+            const res = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
         }
     </script>
 </body>
