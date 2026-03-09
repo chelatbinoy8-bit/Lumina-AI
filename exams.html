@@ -255,7 +255,7 @@
     </div>
 
     <script>
-        const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
+        const plan = JSON.parse(localStorage.getItem('lumina_active_plan')) || { subject: "General", chapters: [] };
         const groqKey = localStorage.getItem('lumina_groq_key');
         
         const activeChapterTitle = plan?.currentChapter || "Core Principles";
@@ -284,8 +284,9 @@
                             {
                                 role: "system",
                                 content: `You are the Exam Module of Lumina. Your goal is to generate 5 precise, high-level multiple choice questions. 
-                                STRICT RULE: Stay EXACTLY on the topic of ${activeChapterTitle}. Do not deviate. 
-                                Format: Return ONLY valid JSON with keys: "questions" (array of objects with "question", "options" array of 4, "correctIndex").`
+                                STRICT RULE: Stay EXACTLY on the topic of ${activeChapterTitle}. 
+                                Format: Return ONLY a JSON object with a "questions" key.
+                                Schema: { "questions": [{ "question": "string", "options": ["str", "str", "str", "str"], "correctIndex": number }] }`
                             },
                             {
                                 role: "user",
@@ -297,16 +298,23 @@
                 });
 
                 const data = await response.json();
-                const parsed = JSON.parse(data.choices[0].message.content);
+                let rawContent = data.choices[0].message.content;
+                
+                // Safety: Clear potential markdown blocks
+                rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                const parsed = JSON.parse(rawContent);
                 questions = parsed.questions || parsed.array || Object.values(parsed)[0];
                 
+                if(!Array.isArray(questions) || questions.length === 0) throw new Error("Invalid question format");
+
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('subject-tag').innerText = plan.subject;
                 document.getElementById('chapter-title').innerText = activeChapterTitle;
                 renderQuestion();
             } catch (e) {
-                console.error(e);
-                document.getElementById('loader').innerHTML = "<p>Connection error. Lumina is retrying...</p>";
+                console.error("Generation Error:", e);
+                document.getElementById('loader').innerHTML = "<p>Authentication failed. Lumina is recalibrating...</p>";
                 setTimeout(generateExam, 3000);
             }
         }
@@ -315,6 +323,11 @@
             const q = questions[currentIdx];
             const container = document.getElementById('question-container');
             selectedOption = null;
+            
+            // Re-enable button
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "Authenticate Reasoning";
+            btn.disabled = false;
 
             container.innerHTML = `
                 <div class="question-card">
@@ -346,14 +359,23 @@
             if (selectedOption === null) return;
 
             const q = questions[currentIdx];
+            const btn = document.getElementById('submit-btn');
+
             if (selectedOption === q.correctIndex) {
-                currentIdx++;
-                if (currentIdx >= questions.length) {
-                    finishExam();
-                } else {
-                    renderQuestion();
-                }
+                btn.innerText = "Access Granted";
+                btn.style.background = "var(--success)";
+                
+                setTimeout(() => {
+                    btn.style.background = "var(--accent-blue)";
+                    currentIdx++;
+                    if (currentIdx >= questions.length) {
+                        finishExam();
+                    } else {
+                        renderQuestion();
+                    }
+                }, 800);
             } else {
+                btn.disabled = true;
                 getNudge(q, q.options[selectedOption]);
             }
         }
@@ -374,11 +396,11 @@
                         messages: [
                             {
                                 role: "system",
-                                content: "You are Lumina. A student chose an incorrect answer. Your role is to guide them back without telling them they are wrong or giving the answer. Ask a philosophical or conceptual question related to the correct logic. Stay STRICTLY on the topic of the current question."
+                                content: "You are Lumina. A student chose an incorrect answer. Guide them back without giving the answer. Ask a short conceptual question that reveals the flaw in the current logic. Max 2 sentences."
                             },
                             {
                                 role: "user",
-                                content: `Question: ${questionObj.question}. Topic: ${activeChapterTitle}. Correct concept: ${questionObj.options[questionObj.correctIndex]}. Their choice: ${chosenAnswer}.`
+                                content: `Question: ${questionObj.question}. Topic: ${activeChapterTitle}. Correct: ${questionObj.options[questionObj.correctIndex]}. Chosen: ${chosenAnswer}.`
                             }
                         ]
                     })
@@ -388,13 +410,16 @@
                 const nudge = data.choices[0].message.content;
                 hintContainer.innerHTML = `<div class="hint-box">${nudge}</div>`;
                 document.getElementById('guide-content').innerText = "Consider this perspective...";
+                
+                // Re-enable button after nudge
+                document.getElementById('submit-btn').disabled = false;
             } catch (e) {
                 hintContainer.innerHTML = `<div class="hint-box">Re-examine the fundamental properties of ${activeChapterTitle}.</div>`;
+                document.getElementById('submit-btn').disabled = false;
             }
         }
 
         function finishExam() {
-            // Update plan as completed
             const updatedPlan = {...plan};
             const chapIdx = updatedPlan.chapters.findIndex(c => c.title === activeChapterTitle);
             if(chapIdx !== -1) updatedPlan.chapters[chapIdx].completed = true;
