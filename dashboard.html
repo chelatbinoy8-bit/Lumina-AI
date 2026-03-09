@@ -194,6 +194,9 @@
                 item.className = 'chapter-item';
                 if(ch.completed) item.style.borderLeft = '4px solid var(--accent-purple)';
                 
+                // We stringify the chapter data to pass it safely through a function
+                const chapterData = JSON.stringify({ title: ch.title, details: ch.details });
+
                 item.innerHTML = `
                     <div class="chapter-main">
                         <div class="check ${ch.completed ? 'done' : ''}" onclick="toggle(${i})"></div>
@@ -203,26 +206,26 @@
                         </div>
                     </div>
                     <div class="study-modes">
-                        <a href="aichat.html" class="mode-btn">
+                        <button onclick='navigateWithContext("aichat.html", ${chapterData})' class="mode-btn">
                             <i data-lucide="message-circle" size="20"></i>
                             <span>Socratic Tutoring</span>
-                        </a>
-                        <a href="knowledge-graphs.html" class="mode-btn">
+                        </button>
+                        <button onclick='navigateWithContext("knowledge-graphs.html", ${chapterData})' class="mode-btn">
                             <i data-lucide="git-branch" size="20"></i>
                             <span>Knowledge Graph</span>
-                        </a>
-                        <a href="summaries.html" class="mode-btn">
+                        </button>
+                        <button onclick='navigateWithContext("summaries.html", ${chapterData})' class="mode-btn">
                             <i data-lucide="file-text" size="20"></i>
                             <span>Cornell Notes</span>
-                        </a>
-                        <a href="flashcards.html" class="mode-btn">
+                        </button>
+                        <button onclick='navigateWithContext("flashcards.html", ${chapterData})' class="mode-btn">
                             <i data-lucide="layers" size="20"></i>
                             <span>SRS Deck</span>
-                        </a>
-                        <a href="exams.html" class="mode-btn">
+                        </button>
+                        <button onclick='navigateWithContext("exams.html", ${chapterData})' class="mode-btn">
                             <i data-lucide="medal" size="20"></i>
                             <span>Mock Exam</span>
-                        </a>
+                        </button>
                     </div>
                 `;
                 list.appendChild(item);
@@ -233,6 +236,22 @@
             document.getElementById('sProg').innerText = Math.round((done / plan.chapters.length) * 100) + "%";
             
             lucide.createIcons();
+        }
+
+        /**
+         * Saves the specific chapter context before navigating.
+         * This allows the AI tools to know exactly what the student clicked on.
+         */
+        function navigateWithContext(url, chapterInfo) {
+            // Update the global active plan to reflect the "Current Focus"
+            const currentPlan = JSON.parse(localStorage.getItem('lumina_active_plan'));
+            currentPlan.currentChapter = chapterInfo.title;
+            currentPlan.currentDetails = chapterInfo.details;
+            
+            localStorage.setItem('lumina_active_plan', JSON.stringify(currentPlan));
+            
+            // Redirect to the tool
+            window.location.href = url;
         }
 
         function toggle(i) {
