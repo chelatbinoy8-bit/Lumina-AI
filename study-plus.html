@@ -12,10 +12,10 @@
             --accent-purple: #7000ff;
             --accent-blue: #00d4ff;
             --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
             --text-main: #ffffff;
             --text-dim: #a0a0a0;
-            --error: #ff4d4d;
+            --error: #ff3b30;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,139 +36,91 @@
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
             background: 
-                radial-gradient(circle at 10% 10%, rgba(112, 0, 255, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 90% 90%, rgba(0, 212, 255, 0.08) 0%, transparent 50%);
+                radial-gradient(circle at 10% 10%, rgba(112, 0, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 90%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
         }
 
         .maker-card {
-            width: 90%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 600px;
             background: var(--glass);
             border: 1px solid var(--glass-border);
             border-radius: 32px;
             padding: 40px;
             backdrop-filter: blur(40px);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            transition: max-width 0.5s ease;
         }
 
-        /* API Overlay */
-        #apiOverlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(5, 5, 5, 0.9);
-            border-radius: 32px;
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            text-align: center;
-            backdrop-filter: blur(10px);
+        .maker-card.dashboard-mode {
+            max-width: 900px;
         }
 
-        .step { display: none; animation: fadeIn 0.4s ease forwards; }
-        .step.active { display: block; }
+        .view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .view.active { display: block; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h2 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; }
-        p.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 0.95rem; }
+        h2 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; letter-spacing: -0.5px; }
+        p.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 0.95rem; line-height: 1.5; }
 
-        .form-group { margin-bottom: 25px; text-align: left; width: 100%; }
-        label { display: block; margin-bottom: 10px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
-        
-        input[type="text"], input[type="password"], input[type="date"], select, textarea {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
+        #apiOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .api-modal {
+            background: #111;
+            padding: 40px;
+            border-radius: 28px;
             border: 1px solid var(--glass-border);
-            padding: 15px;
-            border-radius: 12px;
+            width: 420px;
+            text-align: center;
+        }
+
+        .form-group { margin-bottom: 25px; text-align: left; }
+        label { display: block; margin-bottom: 10px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--accent-blue); }
+        
+        input[type="text"], input[type="date"], input[type="password"] {
+            width: 100%;
+            background: #121212;
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 14px;
             color: white;
             outline: none;
             font-size: 1rem;
             transition: 0.3s;
         }
 
-        input:focus { border-color: var(--accent-blue); background: rgba(255,255,255,0.08); }
-        
-        select option { background: var(--bg-dark); color: white; }
-
-        .option-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            transition: 0.3s;
-        }
-
-        .option-toggle.selected {
-            border-color: var(--accent-blue);
-            background: rgba(0, 212, 255, 0.05);
-        }
-
         .upload-zone {
             border: 2px dashed var(--glass-border);
             border-radius: 20px;
-            padding: 40px;
+            padding: 60px 40px;
             text-align: center;
             cursor: pointer;
-            transition: 0.3s;
-            margin-bottom: 20px;
+            background: rgba(255,255,255,0.01);
         }
 
-        .upload-zone:hover { border-color: var(--accent-purple); background: rgba(112, 0, 255, 0.03); }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            margin: 20px 0;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--glass-border);
-        }
-        .divider:not(:empty)::before { margin-right: 15px; }
-        .divider:not(:empty)::after { margin-left: 15px; }
-
-        .progress-container { margin: 30px 0; }
-        .progress-track { background: var(--glass-border); height: 8px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { width: 0%; height: 100%; background: linear-gradient(to right, var(--accent-purple), var(--accent-blue)); transition: 0.4s; }
-        .ai-status { font-size: 0.85rem; color: var(--accent-blue); margin-top: 10px; font-family: monospace; }
-
-        .chapter-list { max-height: 400px; overflow-y: auto; margin-top: 20px; padding-right: 10px; }
-        .chapter-item {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .chapter-item input { background: transparent; border: none; font-weight: 600; flex: 1; padding: 0; color: white; outline: none; }
-        .btn-icon { background: none; border: none; color: var(--text-dim); cursor: pointer; }
-        .btn-icon:hover { color: #ff4d4d; }
+        .progress-track { background: var(--glass-border); height: 8px; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        .progress-fill { width: 0%; height: 100%; background: linear-gradient(to right, var(--accent-purple), var(--accent-blue)); transition: 0.4s ease; }
+        .ai-status { font-size: 0.75rem; color: var(--accent-blue); margin-top: 12px; font-family: monospace; text-transform: uppercase; letter-spacing: 1px; }
 
         .btn-primary {
             background: var(--accent-purple);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 12px;
+            padding: 18px;
+            border-radius: 16px;
             font-weight: 700;
             cursor: pointer;
             width: 100%;
@@ -177,459 +129,216 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            font-size: 1rem;
         }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(112, 0, 255, 0.3); }
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--accent-blue);
-            color: var(--accent-blue);
-            padding: 15px 30px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
+        /* Dashboard Styles */
+        .dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; border: 1px solid var(--glass-border); }
+        .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--accent-blue); }
+        .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+
+        .chapter-list { max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .chapter-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
             display: flex;
+            gap: 15px;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
-        .btn-outline:hover { background: rgba(0, 212, 255, 0.1); }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
-
-        @keyframes shimmer {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+        .checkbox {
+            width: 24px; height: 24px; border: 2px solid var(--accent-purple); border-radius: 6px; cursor: pointer;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         }
-        .animate-pulse { animation: shimmer 2s infinite ease-in-out; }
+        .checkbox.checked { background: var(--accent-purple); }
+        .checkbox.checked::after { content: '✓'; color: white; font-weight: bold; }
+
+        .error-box { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--error); color: var(--error); padding: 15px; border-radius: 12px; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
+    <div id="apiOverlay">
+        <div class="api-modal">
+            <i data-lucide="shield-check" size="40" style="color: var(--accent-purple); margin-bottom: 20px;"></i>
+            <h3>Groq Authentication</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin: 10px 0 25px;">Enter your API key to enable Llama 3 Intelligence.</p>
+            <div class="form-group">
+                <input type="password" id="groqKeyInput" placeholder="gsk_xxxxxxxxxxxxxx">
+            </div>
+            <button class="btn-primary" onclick="saveKey()">Initialize Engine</button>
+        </div>
+    </div>
+
     <div class="ambient-bg"></div>
 
-    <div class="maker-card">
-        <!-- API KEY MODAL OVERLAY -->
-        <div id="apiOverlay">
-            <i data-lucide="key" size="48" style="color: var(--accent-blue); margin-bottom: 20px;"></i>
-            <h2>API Key Required</h2>
-            <p class="subtitle">Lumina needs your Gemini API key to analyze documents and brainstorm study paths.</p>
-            
+    <div class="maker-card" id="mainCard">
+        <!-- View 1: Setup -->
+        <div class="view active" id="view-setup">
+            <h2>Set Your Milestone</h2>
+            <p class="subtitle">Tell Lumina what you are studying and when you need to finish.</p>
             <div class="form-group">
-                <label>Enter Gemini API Key</label>
-                <input type="password" id="apiInput" placeholder="Paste your key here...">
+                <label>Subject</label>
+                <input type="text" id="subjectInput" placeholder="e.g. History, Physics...">
             </div>
-            
-            <button class="btn-primary" onclick="saveApiKey()">Save and Continue</button>
-            <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 15px;">
-                Your key is stored locally in your browser.
-            </p>
+            <div class="form-group">
+                <label>Goal Date</label>
+                <input type="date" id="goalDate">
+            </div>
+            <button class="btn-primary" onclick="showView('view-import')">Continue <i data-lucide="chevron-right" size="18"></i></button>
         </div>
 
-        <!-- STEP 1: SUBJECT & DATE -->
-        <div class="step active" id="step1">
-            <h2>Set Your Destination</h2>
-            <p class="subtitle">Tell Lumina what we are preparing for.</p>
-            
-            <div class="form-group">
-                <label>Target Subject</label>
-                <select id="subjectSelect">
-                    <option value="" disabled selected>Select a subject...</option>
-                </select>
+        <!-- View 2: Import -->
+        <div class="view" id="view-import">
+            <h2>Import Syllabus</h2>
+            <p class="subtitle">Upload a .txt file for AI processing.</p>
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <i data-lucide="upload-cloud" size="48" style="color: var(--accent-blue); margin-bottom: 15px;"></i>
+                <div style="font-weight: 700;">Select .txt Syllabus</div>
+                <input type="file" id="fileInput" hidden onchange="handleFile(this)" accept=".txt">
             </div>
-
-            <div class="form-group">
-                <label>Preparation Goal (Select One)</label>
-                
-                <div class="option-toggle" id="optExam" onclick="selectGoal('exam')">
-                    <i data-lucide="calendar"></i>
-                    <div style="flex:1">
-                        <div style="font-weight: 600;">Exam Date</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">Prepare based on a hard deadline</div>
-                    </div>
-                    <input type="date" id="examDate" style="width: auto;" onclick="event.stopPropagation()">
-                </div>
-
-                <div class="option-toggle" id="optMilestone" onclick="selectGoal('milestone')">
-                    <i data-lucide="flag"></i>
-                    <div style="flex:1">
-                        <div style="font-weight: 600;">Finish by Date</div>
-                        <div style="font-size: 0.75rem; color: var(--text-dim);">Casual learning pace goal</div>
-                    </div>
-                    <input type="date" id="finishDate" style="width: auto;" onclick="event.stopPropagation()">
-                </div>
+            <div id="processingSection" style="display: none;">
+                <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
+                <div class="ai-status" id="aiStatus">Connecting to Groq...</div>
             </div>
-
-            <button class="btn-primary" id="btnStep1" onclick="nextStep(2)">Continue</button>
+            <div id="errorDisplay" class="error-box"></div>
+            <button class="btn-primary" style="background: transparent; border: 1px solid var(--glass-border); margin-top: 20px;" onclick="showView('view-setup')">Back</button>
         </div>
 
-        <!-- STEP 2: UPLOAD & GEMINI ANALYSIS -->
-        <div class="step" id="step2">
-            <h2>Source Material</h2>
-            <p class="subtitle">Choose how you want Lumina ✨ to build your study path.</p>
-            
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()" id="dropZone">
-                <i data-lucide="upload-cloud" size="48" style="color: var(--accent-purple); margin-bottom: 15px;"></i>
-                <div style="font-weight: 600;">Upload Textbook/Notes</div>
-                <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 5px;">Lumina AI will visually extract the curriculum from your file.</div>
-                <input type="file" id="fileInput" hidden onchange="handleFileUpload(this)" accept="application/pdf,image/*">
-            </div>
-
-            <div class="divider">OR</div>
-
-            <button class="btn-outline" onclick="aiBrainstorm()">
-                <i data-lucide="sparkles"></i> ✨ Brainstorm with AI
-            </button>
-            <p style="text-align: center; font-size: 0.75rem; color: var(--text-dim); margin-top: 10px;">
-                Don't have files? Gemini will draft a curriculum based on global standards.
-            </p>
-
-            <div id="processingSection" style="display: none; margin-top: 30px;">
-                <div class="progress-container">
-                    <div class="progress-track">
-                        <div class="progress-fill" id="progressBar"></div>
-                    </div>
-                    <div class="ai-status" id="aiStatus">Connecting to Lumina Neural Grid...</div>
+        <!-- View 3: Dashboard -->
+        <div class="view" id="view-dashboard">
+            <div class="dash-header">
+                <div>
+                    <h2 id="dashTitle">Roadmap</h2>
+                    <p id="dashMeta" style="color: var(--accent-blue); font-size: 0.8rem; font-weight: 700;"></p>
                 </div>
+                <button onclick="resetApp()" style="background: none; border: 1px solid var(--glass-border); color: var(--text-dim); padding: 8px 12px; border-radius: 10px; cursor: pointer;">Reset</button>
             </div>
-
-            <button class="btn-primary" id="continueAnalysis" style="display: none; margin-top: 20px;" onclick="nextStep(3)">
-                Path Found - Review Curriculum
-            </button>
-        </div>
-
-        <!-- STEP 3: EDIT CHAPTERS -->
-        <div class="step" id="step3">
-            <h2>Review Curriculum</h2>
-            <p class="subtitle">AI detected these modules. You can rename, add, or refine them.</p>
-            
+            <div class="stat-grid">
+                <div class="stat-card"><div class="stat-val" id="st1">0</div><div class="stat-label">Tasks</div></div>
+                <div class="stat-card"><div class="stat-val" id="st2">0</div><div class="stat-label">Left</div></div>
+                <div class="stat-card"><div class="stat-val" id="st3">0%</div><div class="stat-label">Progress</div></div>
+            </div>
             <div class="chapter-list" id="chapterList"></div>
-
-            <button style="background: none; border: 1px dashed var(--glass-border); width: 100%; padding: 15px; margin-top: 15px; border-radius: 12px; cursor: pointer; color: var(--accent-blue); display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="addChapter()">
-                <i data-lucide="plus" size="18"></i> Add New Chapter
-            </button>
-
-            <button class="btn-primary" style="margin-top: 30px;" onclick="finalizeStudyPlan()">
-                ✨ Generate Personalized Strategy
-            </button>
-        </div>
-
-        <!-- STEP 4: FINAL SYNC -->
-        <div class="step" id="step4" style="text-align: center;">
-            <div id="syncContent">
-                <i data-lucide="cpu" size="64" style="color: var(--accent-blue); margin-bottom: 20px;" class="animate-pulse"></i>
-                <h2>✨ AI Intelligence at Work</h2>
-                <p class="subtitle" id="refineStatus">Gemini is generating bespoke summaries and mnemonic strategies for your roadmap...</p>
-                <div class="progress-container">
-                    <div class="progress-track"><div class="progress-fill" style="width: 100%; animation: shimmer 2s infinite linear;"></div></div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
-        // Internal configuration
-        const apiKeyPlaceholder = ""; // Built-in key if available
+        let groqApiKey = localStorage.getItem('lumina_groq_key') || "";
+        let activePlan = JSON.parse(localStorage.getItem('lumina_active_plan'));
 
-        // Resolve API key
-        function getResolvedApiKey() {
-            if (apiKeyPlaceholder && apiKeyPlaceholder.trim() !== "") return apiKeyPlaceholder;
-            const storedKey = localStorage.getItem('gemini_api_key');
-            if (storedKey && storedKey.trim() !== "") return storedKey;
-            return null;
-        }
-
-        // Save Key function
-        function saveApiKey() {
-            const val = document.getElementById('apiInput').value.trim();
-            if (!val) {
-                alert("Please enter a valid key.");
-                return;
-            }
-            localStorage.setItem('gemini_api_key', val);
-            checkApiStatus();
-        }
-
-        // Check if we need to show the key modal
-        function checkApiStatus() {
-            const key = getResolvedApiKey();
-            const overlay = document.getElementById('apiOverlay');
-            if (!key) {
-                overlay.style.display = 'flex';
-            } else {
-                overlay.style.display = 'none';
-            }
-        }
-        
-        let selectedGoal = null;
-        let detectedChapters = [];
-
-        document.addEventListener('DOMContentLoaded', () => {
+        window.onload = () => {
             lucide.createIcons();
-            loadProfileSubjects();
-            checkApiStatus();
-        });
-
-        function loadProfileSubjects() {
-            const select = document.getElementById('subjectSelect');
-            const sessionData = localStorage.getItem('lumina_session');
-            const session = sessionData ? JSON.parse(sessionData) : null;
+            if(!groqApiKey) document.getElementById('apiOverlay').style.display = 'flex';
+            else document.getElementById('apiOverlay').style.display = 'none';
             
-            const defaultSubjects = [
-                'Mathematics', 'English', 'Physics', 'Biology', 
-                'Chemistry', 'History', 'Demography', 'Geography', 
-                'Economics', 'Democracy', 'Sociology', 'Computer Science',
-                'Literature', 'Philosophy', 'Art History', 
-                'Malayalam', 'Hindi'
-            ];
+            if(activePlan) renderDashboard();
+        };
 
-            let userSubjects = [];
-            if (session && session.profile && session.profile.subjects) {
-                userSubjects = session.profile.subjects;
-            }
-
-            const combined = [...new Set([...userSubjects, ...defaultSubjects])];
-            combined.sort().forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.textContent = sub;
-                select.appendChild(opt);
-            });
+        function saveKey() {
+            const val = document.getElementById('groqKeyInput').value.trim();
+            if(!val.startsWith('gsk_')) return alert("Invalid Key");
+            localStorage.setItem('lumina_groq_key', val);
+            groqApiKey = val;
+            document.getElementById('apiOverlay').style.display = 'none';
         }
 
-        function selectGoal(type) {
-            selectedGoal = type;
-            document.getElementById('optExam').classList.toggle('selected', type === 'exam');
-            document.getElementById('optMilestone').classList.toggle('selected', type === 'milestone');
-        }
-
-        function nextStep(n) {
-            if (n === 2) {
-                const sub = document.getElementById('subjectSelect').value;
-                const dateVal = selectedGoal === 'exam' ? document.getElementById('examDate').value : document.getElementById('finishDate').value;
-                if (!sub || !selectedGoal || !dateVal) {
-                    alert("Please fill in the subject and goal date.");
-                    return;
-                }
-            }
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById('step' + n).classList.add('active');
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
             lucide.createIcons();
         }
 
-        async function fetchWithRetry(url, options, maxRetries = 5) {
-            const key = getResolvedApiKey();
-            if (!key) {
-                checkApiStatus();
-                throw new Error("Missing API Key");
-            }
-            
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const fullUrl = `${url}?key=${key}`;
-                    const response = await fetch(fullUrl, options);
-                    
-                    if (response.ok) return await response.json();
-                    
-                    if (response.status === 429 || response.status >= 500) {
-                        await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-                        continue;
-                    }
-                    
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `API Error: ${response.status}`);
-                } catch (error) {
-                    if (i === maxRetries - 1) throw error;
-                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-                }
-            }
-        }
-
-        const fileToBase64 = (file) => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = (error) => reject(error);
-        });
-
-        async function aiBrainstorm() {
-            const subject = document.getElementById('subjectSelect').value;
-            prepareLoading();
-            
-            const status = document.getElementById('aiStatus');
-            const bar = document.getElementById('progressBar');
-            status.innerText = "✨ Lumina AI is drafting a global curriculum for " + subject + "...";
-            bar.style.width = "40%";
-
-            const prompt = `Act as an academic curriculum specialist. A student wants to study "${subject}". 
-            Generate a JSON array of 5 logical study chapters/modules for a comprehensive prep course. 
-            Format strictly as: [{"title": "Name", "summary": "Short desc"}]`;
-
-            try {
-                const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-
-                detectedChapters = JSON.parse(data.candidates[0].content.parts[0].text);
-                finishLoading();
-            } catch (e) {
-                handleAiError(e, subject);
-            }
-        }
-
-        async function handleFileUpload(input) {
-            if (!input.files.length) return;
-            const file = input.files[0];
-            const subject = document.getElementById('subjectSelect').value;
-            
-            prepareLoading();
-            const status = document.getElementById('aiStatus');
-            const bar = document.getElementById('progressBar');
-            status.innerText = "✨ Lumina is visually analyzing " + file.name + "...";
-            bar.style.width = "30%";
-
-            try {
-                const base64Data = await fileToBase64(file);
-                bar.style.width = "60%";
-                
-                const prompt = `Act as an expert tutor. Look at the provided document for the subject "${subject}". 
-                Identify the table of contents or main topics discussed. 
-                Generate a JSON array of 4-8 modules found in the text. 
-                Format strictly: [{"title": "Module Title", "summary": "One sentence summary"}]`;
-
-                const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inlineData: { mimeType: file.type || "application/pdf", data: base64Data } }
-                            ]
-                        }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-
-                detectedChapters = JSON.parse(data.candidates[0].content.parts[0].text);
-                finishLoading();
-            } catch (e) {
-                handleAiError(e, subject);
-            }
-        }
-
-        function prepareLoading() {
-            document.getElementById('dropZone').style.display = 'none';
-            document.querySelector('.divider').style.display = 'none';
-            document.querySelector('.btn-outline').style.display = 'none';
+        async function handleFile(input) {
+            if(!input.files[0]) return;
+            const text = await input.files[0].text();
             document.getElementById('processingSection').style.display = 'block';
+            process(text);
         }
 
-        function finishLoading() {
-            const bar = document.getElementById('progressBar');
-            const status = document.getElementById('aiStatus');
-            bar.style.width = "100%";
-            status.innerText = "✨ Content extracted and analyzed!";
-            document.getElementById('continueAnalysis').style.display = 'flex';
-            renderChapters();
-        }
+        async function process(syllabus) {
+            const subject = document.getElementById('subjectInput').value;
+            const date = document.getElementById('goalDate').value;
+            updateStatus("Llama 3 Analyzing...", 45);
 
-        function handleAiError(e, subject) {
-            console.error("Gemini Error:", e);
-            document.getElementById('aiStatus').innerText = "AI Error: " + (e.message || "Unknown error");
-            
-            // If the error looks like an auth issue, clear the key and show overlay
-            if (e.message.toLowerCase().includes("key") || e.message.includes("401") || e.message.includes("403")) {
-                localStorage.removeItem('gemini_api_key');
-                setTimeout(() => checkApiStatus(), 2000);
-            } else {
-                setTimeout(() => {
-                    document.getElementById('aiStatus').innerText = "Using smart placeholders as fallback...";
-                    fallbackChapters(subject);
-                }, 2000);
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            { role: "system", content: "Planner. JSON output: { 'chapters': [{ 'title': string, 'details': string, 'completed': false }] }" },
+                            { role: "user", content: `Plan ${subject} by ${date}. Syllabus: ${syllabus}` }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                const data = await response.json();
+                const planData = JSON.parse(data.choices[0].message.content);
+                
+                activePlan = { subject, targetDate: date, chapters: planData.chapters };
+                localStorage.setItem('lumina_active_plan', JSON.stringify(activePlan));
+                
+                updateStatus("Complete!", 100);
+                setTimeout(() => renderDashboard(), 500);
+            } catch (e) {
+                document.getElementById('errorDisplay').innerText = e.message;
+                document.getElementById('errorDisplay').style.display = 'block';
             }
         }
 
-        function fallbackChapters(subject) {
-            detectedChapters = [
-                {title: "Fundamentals of " + subject, summary: "Core principles and basic definitions."},
-                {title: "Advanced Concepts", summary: "Diving deeper into complex theories."},
-                {title: "Practical Problem Solving", summary: "Applying knowledge to real-world scenarios."},
-                {title: "Review & Mock Prep", summary: "Final evaluation and revision."}
-            ];
-            renderChapters();
-            document.getElementById('continueAnalysis').style.display = 'flex';
-        }
-
-        function renderChapters() {
+        function renderDashboard() {
+            document.getElementById('mainCard').classList.add('dashboard-mode');
+            document.getElementById('dashTitle').innerText = activePlan.subject;
+            document.getElementById('dashMeta').innerText = "FINISH BY " + activePlan.targetDate;
+            
             const list = document.getElementById('chapterList');
             list.innerHTML = '';
-            detectedChapters.forEach((ch, index) => {
-                const div = document.createElement('div');
-                div.className = 'chapter-item';
-                div.innerHTML = `
-                    <div style="font-weight: 800; color: var(--accent-blue);">${index + 1}</div>
-                    <input type="text" value="${ch.title}" onchange="updateChapter(${index}, this.value)">
-                    <button class="btn-icon" onclick="removeChapter(${index})"><i data-lucide="trash-2" size="18"></i></button>
+            let done = 0;
+            
+            activePlan.chapters.forEach((ch, i) => {
+                if(ch.completed) done++;
+                const item = document.createElement('div');
+                item.className = 'chapter-item';
+                item.style.opacity = ch.completed ? '0.5' : '1';
+                item.innerHTML = `
+                    <div class="checkbox ${ch.completed ? 'checked' : ''}" onclick="toggle(${i})"></div>
+                    <div>
+                        <div style="font-weight: 700;">${ch.title}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-dim);">${ch.details}</div>
+                    </div>
                 `;
-                list.appendChild(div);
+                list.appendChild(item);
             });
-            lucide.createIcons();
+
+            document.getElementById('st1').innerText = activePlan.chapters.length;
+            document.getElementById('st2').innerText = activePlan.chapters.length - done;
+            document.getElementById('st3').innerText = Math.round((done / activePlan.chapters.length) * 100) + "%";
+            
+            showView('view-dashboard');
         }
 
-        function updateChapter(i, v) { detectedChapters[i].title = v; }
-        function removeChapter(i) { detectedChapters.splice(i, 1); renderChapters(); }
-        function addChapter() { detectedChapters.push({ title: "New Module", summary: "" }); renderChapters(); }
+        function toggle(i) {
+            activePlan.chapters[i].completed = !activePlan.chapters[i].completed;
+            localStorage.setItem('lumina_active_plan', JSON.stringify(activePlan));
+            renderDashboard();
+        }
 
-        async function finalizeStudyPlan() {
-            nextStep(4);
-            const subject = document.getElementById('subjectSelect').value;
-            const status = document.getElementById('refineStatus');
+        function resetApp() {
+            localStorage.removeItem('lumina_active_plan');
+            location.reload();
+        }
 
-            status.innerText = "✨ Lumina AI is calculating memory anchors and tailored tips...";
-
-            const prompt = `Subject: ${subject}. Modules: ${detectedChapters.map(c => c.title).join(', ')}. 
-            For each module, provide a specific study tip (one sentence) that uses active recall or a mnemonic. 
-            Return JSON where keys are module names and values are the tips.`;
-
-            try {
-                const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-                const tips = JSON.parse(data.candidates[0].content.parts[0].text);
-                detectedChapters = detectedChapters.map(ch => ({
-                    ...ch,
-                    studyTip: tips[ch.title] || "Use the Feynman technique to explain this to a friend."
-                }));
-            } catch (e) {
-                detectedChapters = detectedChapters.map(ch => ({ ...ch, studyTip: "Consistent daily review recommended." }));
-            }
-
-            const studyData = {
-                subject,
-                goalType: selectedGoal,
-                deadline: selectedGoal === 'exam' ? document.getElementById('examDate').value : document.getElementById('finishDate').value,
-                chapters: detectedChapters,
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('lumina_current_study', JSON.stringify(studyData));
-            setTimeout(() => { window.location.assign('student_study_dashboard.html'); }, 2000);
+        function updateStatus(msg, prog) {
+            document.getElementById('aiStatus').innerText = msg;
+            document.getElementById('progressBar').style.width = prog + '%';
         }
     </script>
 </body>
