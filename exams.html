@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Guided Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --accent-purple: #7000ff;
+            --accent-blue: #00d4ff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --success: #00ff88;
+            --warning: #ffcc00;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .exam-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Question Side */
+        .question-area {
+            flex: 1;
+            padding: 60px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .exam-header {
+            margin-bottom: 40px;
+        }
+
+        .exam-header p {
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            margin: 0;
+        }
+
+        .exam-header h1 {
+            font-size: 1.8rem;
+            margin: 10px 0;
+            font-weight: 800;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: var(--glass);
+            border-radius: 2px;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-blue);
+            width: 0%;
+            transition: 0.5s ease;
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        .question-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            padding: 18px 24px;
+            border-radius: 12px;
+            color: white;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .option-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent-blue);
+        }
+
+        .option-btn.selected {
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+        }
+
+        /* Lumina Sidebar (The Guide) */
+        .guide-sidebar {
+            width: 350px;
+            background: rgba(255,255,255,0.01);
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .guide-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        #guide-content {
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .hint-box {
+            background: rgba(112, 0, 255, 0.1);
+            border-left: 3px solid var(--accent-purple);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .btn-action {
+            background: var(--accent-blue);
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>Lumina is preparing your assessment...</p>
+    </div>
+
+    <div class="exam-layout">
+        <div class="question-area">
+            <div class="exam-header">
+                <p id="subject-tag">SUBJECT</p>
+                <h1 id="chapter-title">Assessment</h1>
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+            </div>
+
+            <div id="question-container">
+                <!-- Question will load here -->
+            </div>
+
+            <button class="btn-action" id="submit-btn" onclick="checkAnswer()">Evaluate Response</button>
+        </div>
+
+        <div class="guide-sidebar">
+            <div class="guide-status">
+                <i data-lucide="sparkles" size="16"></i>
+                Lumina's Presence
+            </div>
+            <div id="guide-content">
+                I am here to observe your reasoning. Take your time to consider the fundamental principles we discussed.
+            </div>
+            
+            <div id="hint-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
+        const groqKey = localStorage.getItem('lumina_groq_key');
+        
+        const activeChapterTitle = plan?.currentChapter || plan?.chapters?.find(c => !c.completed)?.title || "Topic";
+        const activeChapterDetails = plan?.currentDetails || plan?.chapters?.find(c => !c.completed)?.details || "";
+
+        let questions = [];
+        let currentIdx = 0;
+        let selectedOption = null;
+
+        async function generateExam() {
+            if (!groqKey) {
+                alert("Groq Key Missing");
+                return;
+            }
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${groqKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "Generate 5 high-quality multiple choice questions based on the topic. Return ONLY a JSON array of objects with keys: 'question', 'options' (array of 4 strings), and 'correctIndex' (0-3)."
+                            },
+                            {
+                                role: "user",
+                                content: `Subject: ${plan.subject}. Topic: ${activeChapterTitle}. Details: ${activeChapterDetails}`
+                            }
+                        ],
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                const data = await response.json();
+                const parsed = JSON.parse(data.choices[0].message.content);
+                questions = parsed.questions || parsed.array || Object.values(parsed)[0];
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('subject-tag').innerText = plan.subject;
+                document.getElementById('chapter-title').innerText = activeChapterTitle;
+                renderQuestion();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loader').innerHTML = "<p>Connection error. Please refresh.</p>";
+            }
+        }
+
+        function renderQuestion() {
+            const q = questions[currentIdx];
+            const container = document.getElementById('question-container');
+            selectedOption = null;
+
+            container.innerHTML = `
+                <div class="question-card">
+                    <div class="question-text">${q.question}</div>
+                    <div class="options-grid">
+                        ${q.options.map((opt, i) => `
+                            <button class="option-btn" onclick="selectOpt(${i}, this)">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            const progress = ((currentIdx) / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+            document.getElementById('hint-container').innerHTML = '';
+            document.getElementById('guide-content').innerText = "Analyzing the structure of this problem...";
+        }
+
+        function selectOpt(idx, btn) {
+            selectedOption = idx;
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        async function checkAnswer() {
+            if (selectedOption === null) return;
+
+            const q = questions[currentIdx];
+            if (selectedOption === q.correctIndex) {
+                // Correct
+                currentIdx++;
+                if (currentIdx >= questions.length) {
+                    finishExam();
+                } else {
+                    renderQuestion();
+                }
+            } else {
+                // Wrong - Get Socratic Nudge from Groq
+                getNudge(q, q.options[selectedOption]);
+            }
+        }
+
+        async function getNudge(questionObj, chosenAnswer) {
+            const hintContainer = document.getElementById('hint-container');
+            hintContainer.innerHTML = '<div class="hint-box">Lumina is reflecting...</div>';
+
+            try {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${groqKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: [
+                            {
+                                role: "system",
+                                content: "The student picked a wrong answer in an exam. Do NOT tell them they are wrong. Do NOT tell them the right answer. Provide a short, Socratic hint (1-2 sentences) that asks them to reconsider a specific concept related to the question."
+                            },
+                            {
+                                role: "user",
+                                content: `Question: ${questionObj.question}. They chose: ${chosenAnswer}. The correct concept involves ${questionObj.options[questionObj.correctIndex]}.`
+                            }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+                const nudge = data.choices[0].message.content;
+                hintContainer.innerHTML = `<div class="hint-box">${nudge}</div>`;
+                document.getElementById('guide-content').innerText = "I've noticed a slight misalignment in the logic...";
+            } catch (e) {
+                hintContainer.innerHTML = `<div class="hint-box">Consider the relationship between the terms again.</div>`;
+            }
+        }
+
+        function finishExam() {
+            document.getElementById('progress').style.width = `100%`;
+            document.getElementById('question-container').innerHTML = `
+                <div class="question-card" style="text-align: center;">
+                    <i data-lucide="award" size="48" style="color: var(--success); margin-bottom: 20px;"></i>
+                    <h2>Assessment Authenticated</h2>
+                    <p>You have demonstrated a firm grasp of "${activeChapterTitle}". Your journey continues.</p>
+                    <button class="btn-action" onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        window.onload = () => {
+            lucide.createIcons();
+            generateExam();
+        };
+    </script>
+</body>
+</html>
