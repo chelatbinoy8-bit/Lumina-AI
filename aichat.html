@@ -252,7 +252,6 @@
     </main>
 
     <script>
-        // Use active plan from storage or fallback
         const defaultPlan = {
             subject: "Neural Science",
             chapters: [
@@ -263,21 +262,18 @@
         let plan = JSON.parse(localStorage.getItem('lumina_active_plan')) || defaultPlan;
         const groqKey = localStorage.getItem('lumina_groq_key') || "";
         
-        // Find current chapter
         const activeChapter = plan.chapters.find(c => !c.completed) || plan.chapters[0];
         
-        // Define internal milestones for the specific topic
         const milestones = [
             "Contextual Hook",
             "Functional Logic",
             "Structural Components",
             "Edge Case Analysis",
-            "Formal Definition" // Final one
+            "Formal Definition"
         ];
 
         let currentMilestoneIndex = 0;
         let chatHistory = [];
-        let messageCount = 0;
 
         function updateProgressUI() {
             const pct = Math.round((currentMilestoneIndex / milestones.length) * 100);
@@ -303,7 +299,7 @@
 
         async function initTutor() {
             if (!groqKey) {
-                appendMessage('ai', "Neural Key missing. Re-establish connection in the primary terminal.");
+                appendMessage('ai', "Neural Key missing. Please provide your Groq API key in the settings.");
                 return;
             }
 
@@ -311,25 +307,27 @@
             updateProgressUI();
 
             const systemPrompt = `
-                You are Lumina, a Socratic Tutor focused on depth.
-                TOPIC: "${activeChapter.title}"
-                CONTEXT: "${activeChapter.details}"
+                You are Lumina, a Socratic Tutor. Your goal is to guide the student to mastery of: "${activeChapter.title}" (${activeChapter.details}).
                 
-                PHASES OF MASTERY:
-                1. Contextual Hook: Establish why this matters.
-                2. Functional Logic: How does it work?
-                3. Structural Components: What are the parts?
-                4. Edge Case Analysis: What happens when things change?
+                STRICT COGNITIVE MILESTONES:
+                1. Contextual Hook: Why does this matter? (Start here)
+                2. Functional Logic: How does the mechanism work?
+                3. Structural Components: What are the specific parts involved?
+                4. Edge Case Analysis: What happens if variables change?
                 5. Formal Definition: Can the student define it in their own words perfectly?
 
-                CURRENT GOAL: Move the student from "${milestones[currentMilestoneIndex]}" toward "${milestones[currentMilestoneIndex + 1] || 'Completion'}".
-
                 SOCRATIC RULES:
-                - Never provide the definition.
-                - Only move to the next phase when the student demonstrates clear understanding of the current one.
-                - If the student is correct, output "[ADVANCE]" at the end of your message.
-                - If the student provides a perfect formal definition, output "[SESSION_COMPLETE]".
-                - Be sharp, brief, and intellectually demanding.
+                - NEVER give the answer or define the concept.
+                - Challenge the student's logic. If they are wrong or vague, DO NOT advance. Correct their misconception with a new question.
+                - Only move to the next milestone when the student proves deep understanding of the current one.
+                - Be brief, sharp, and demanding.
+
+                PROTOCOL FOR ADVANCEMENT:
+                - If the student successfully masters the CURRENT milestone and you are ready to move to the NEXT one, you MUST include the tag [ADVANCE] in your response.
+                - If the student provides a perfect final definition and the session is over, include [SESSION_COMPLETE].
+                - If they are wrong, DO NOT include these tags.
+
+                CURRENT MILESTONE: ${milestones[currentMilestoneIndex]}.
             `;
 
             chatHistory.push({ role: "system", content: systemPrompt });
@@ -350,19 +348,21 @@
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: chatHistory,
-                        temperature: 0.7,
-                        max_tokens: 600
+                        temperature: 0.4, // Lower temperature for more consistent logic evaluation
+                        max_tokens: 500
                     })
                 });
 
                 const data = await response.json();
                 let aiMsg = data.choices[0].message.content;
                 
-                // Logic for milestone progression
+                // Logic for milestone progression based on AI's evaluation
                 if (aiMsg.includes("[ADVANCE]")) {
                     aiMsg = aiMsg.replace("[ADVANCE]", "").trim();
-                    currentMilestoneIndex = Math.min(currentMilestoneIndex + 1, milestones.length - 1);
+                    currentMilestoneIndex++;
                     updateProgressUI();
+                    // Update system context to focus on new milestone
+                    chatHistory[0].content += `\nSTUENT HAS PASSED PREVIOUS STAGE. CURRENT MILESTONE IS NOW: ${milestones[currentMilestoneIndex]}`;
                 }
 
                 if (aiMsg.includes("[SESSION_COMPLETE]")) {
@@ -375,7 +375,7 @@
                 chatHistory.push({ role: "assistant", content: aiMsg });
                 appendMessage('ai', aiMsg);
             } catch (e) {
-                appendMessage('ai', "Signal interference. Please retry your transmission.");
+                appendMessage('ai', "Signal interference. Check your connection or API key.");
             } finally {
                 typing.style.display = 'none';
             }
@@ -406,7 +406,6 @@
             const val = input.value.trim();
             if (!val) return;
 
-            messageCount++;
             appendMessage('user', val);
             input.value = '';
             chatHistory.push({ role: "user", content: val });
