@@ -71,9 +71,6 @@
             font-size: 0.9rem;
         }
 
-        .feedback-correct { border-left: 4px solid var(--accent-green); }
-        .feedback-wrong { border-left: 4px solid #ff4b4b; }
-
         .content-area {
             flex: 1;
             overflow-y: auto;
@@ -115,14 +112,6 @@
             display: block;
         }
 
-        .highlight-yellow {
-            background: rgba(255, 215, 0, 0.15);
-            border-bottom: 2px solid var(--accent-yellow);
-            color: #fff;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-
         .main-point {
             display: flex;
             gap: 20px;
@@ -132,54 +121,6 @@
             color: #e0e0e0;
         }
         .point-bullet { color: var(--accent-purple); font-weight: 900; }
-
-        #quiz-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(15px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .quiz-card {
-            background: #0a0a0a;
-            border: 1px solid var(--glass-border);
-            padding: 40px;
-            border-radius: 32px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .quiz-progress {
-            position: absolute;
-            top: 0; left: 0; height: 4px;
-            background: var(--accent-blue);
-            border-radius: 4px 4px 0 0;
-            transition: width 0.3s ease;
-        }
-
-        .quiz-option {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            padding: 18px 24px;
-            margin: 12px 0;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--text-main);
-            text-align: left;
-            width: 100%;
-            font-size: 1rem;
-        }
-
-        .quiz-option:hover { 
-            border-color: var(--accent-blue); 
-            background: rgba(0, 212, 255, 0.05);
-        }
 
         .btn-quiz {
             background: var(--accent-purple);
@@ -197,8 +138,6 @@
             transition: transform 0.2s;
         }
 
-        .btn-quiz:hover { transform: scale(1.02); background: #8224ff; }
-
         #loading { text-align: center; padding: 120px 20px; }
         .spin { animation: rotate 2s linear infinite; }
 
@@ -211,7 +150,7 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <i data-lucide="brain-circuit" size="18"></i>
-            Progress Insights
+            Chapter Intelligence
         </div>
         <div id="feedback-area">
             <div id="initial-instruction" class="feedback-card" style="color: var(--text-dim); border-style: dashed;">
@@ -220,14 +159,14 @@
         </div>
         <button onclick="location.href='dashboard.html'" style="margin-top: auto; background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 14px; border-radius: 14px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <i data-lucide="arrow-left" size="16"></i>
-            Back to Plan
+            Back to Dashboard
         </button>
     </aside>
 
     <main class="content-area">
         <div id="loading">
             <i data-lucide="loader-2" size="48" class="spin" style="color: var(--accent-blue); margin-bottom: 24px;"></i>
-            <h2 style="font-weight: 700;">Analyzing Chapter Data...</h2>
+            <h2 id="loading-text" style="font-weight: 700;">Analyzing Chapter Data...</h2>
         </div>
 
         <div class="summary-container" id="summary-content" style="display: none;">
@@ -240,56 +179,64 @@
             
             <button id="start-quiz-btn" class="btn-quiz" style="display: none;" onclick="startQuiz()">
                 <i data-lucide="play-circle"></i>
-                Start Topic Assessment
+                Start Assessment
             </button>
         </div>
     </main>
 
-    <div id="quiz-overlay">
-        <div class="quiz-card">
-            <div id="quiz-progress-bar" class="quiz-progress" style="width: 0%"></div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <span id="quiz-counter" style="font-size: 0.7rem; color: var(--accent-yellow); font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">Question 1</span>
-                <button onclick="closeQuiz()" style="background: none; border: none; color: var(--text-dim); cursor: pointer;"><i data-lucide="x" size="18"></i></button>
-            </div>
-            <h2 id="quiz-question" style="margin-bottom: 30px; font-size: 1.4rem; line-height: 1.4;"></h2>
-            <div id="quiz-options"></div>
-        </div>
-    </div>
-
     <script>
         const groqKey = localStorage.getItem('lumina_groq_key');
         const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
-        // FIX: Ensure activeIdx is parsed as a number correctly
         const activeIdx = parseInt(localStorage.getItem('lumina_active_chapter_index')) || 0;
-        
-        let quizPool = [];
-        let currentQuestionIdx = 0;
-        let score = 0;
+
+        function isIndicScript(text) {
+            const malayalam = /[\u0D00-\u0D7F]/;
+            const hindi = /[\u0900-\u097F]/;
+            return malayalam.test(text) || hindi.test(text);
+        }
+
+        const isIndic = isIndicScript(plan.subject);
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            
-            // Validate that plan exists and index is within bounds
             if (plan && plan.chapters && plan.chapters[activeIdx]) {
                 const targetChapter = plan.chapters[activeIdx];
-                
-                // Update UI with correct Chapter Title
                 document.getElementById('chapter-title').innerText = targetChapter.title;
                 document.getElementById('sub-tag').innerText = plan.subject;
                 
-                // Update Sidebar Instruction
-                document.getElementById('initial-instruction').innerText = `Review the summary for "${targetChapter.title}" thoroughly. A custom quiz will be available once the content is loaded.`;
+                if (isIndic) {
+                    document.getElementById('loading-text').innerText = "Preparing Literary Analysis (Aashayam)...";
+                }
 
                 await generateSummaries(targetChapter);
             } else {
-                console.error("No active chapter found at index:", activeIdx);
-                // Fallback to dashboard if data is missing
                 window.location.href = 'dashboard.html';
             }
         });
 
         async function generateSummaries(chapter) {
+            // Determine prompt based on language
+            const systemPrompt = isIndic ? 
+                `You are a literature expert. For the given Malayalam/Hindi chapter, provide an EXTENDED literary analysis.
+                Rule 1: Focus on the "Aashayam" (Core Essence/Summary) in great detail.
+                Rule 2: Include a dedicated section for the "Author/Kavi Profile".
+                Rule 3: Provide 5-7 most important Essay-type questions and answers.
+                Rule 4: NO QUIZ questions needed. Output JSON only.
+                JSON Schema: {
+                  "aashayam": "long narrative string",
+                  "author": "string about author",
+                  "essay_questions": [{"q": "", "a": ""}],
+                  "key_points": ["point 1", "point 2"]
+                }` :
+                `You are an expert tutor. Create a study summary. Output JSON.
+                JSON Schema: {
+                  "definitions": [{"term":"", "definition":""}], 
+                  "points": [{"text":"", "isHighlighted":true}], 
+                  "extra_facts": [{"title":"", "text":""}], 
+                  "narrative": "",
+                  "quiz_questions": [{"question":"", "options":[], "correct_index":0, "explanation":""}]
+                }`;
+
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
@@ -300,50 +247,20 @@
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: [
-                            {
-                                role: "system",
-                                content: `You are an expert tutor. Create a detailed study summary for the specific topic provided.
-                                Rule 1: Output JSON. 
-                                Rule 2: Use Markdown for formatting inside the strings if needed, but DO NOT use HTML tags. 
-                                Rule 3: Ensure the content is SPECIFIC to the chapter details provided.
-                                JSON Schema: { 
-                                  "definitions": [{"term":"", "definition":""}], 
-                                  "points": [{"text":"", "isHighlighted":boolean}], 
-                                  "extra_facts": [{"title":"", "text":""}], 
-                                  "narrative": "", 
-                                  "quiz_questions": [
-                                    {"question":"", "options":[], "correct_index":0, "explanation":""}
-                                  ] 
-                                }`
-                            },
-                            {
-                                role: "user",
-                                content: `Subject: ${plan.subject}. 
-                                Specific Chapter Title: ${chapter.title}. 
-                                Detailed Syllabus/Context for this Chapter: ${chapter.details || 'General overview of ' + chapter.title}.`
-                            }
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: `Subject: ${plan.subject}. Topic: ${chapter.title}. Context: ${chapter.details}` }
                         ],
                         response_format: { type: "json_object" }
                     })
                 });
 
-                if (!response.ok) throw new Error("API request failed");
-
                 const data = await response.json();
                 const content = JSON.parse(data.choices[0].message.content);
-                quizPool = content.quiz_questions;
                 renderContent(content);
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').innerHTML = `
-                    <div style="color: #ff4b4b; padding: 20px; border: 1px solid #ff4b4b; border-radius: 12px; background: rgba(255, 75, 75, 0.05);">
-                        <i data-lucide="alert-circle" style="margin-bottom: 10px;"></i>
-                        <h3>Content Generation Error</h3>
-                        <p>We couldn't reach the AI tutor. Please check your internet connection and verify your Groq API Key.</p>
-                        <button onclick="location.reload()" style="margin-top: 15px; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Retry</button>
-                    </div>`;
-                lucide.createIcons();
+                document.getElementById('loading').innerHTML = `<h3 style="color:red">Failed to load summary. Check API Key.</h3>`;
             }
         }
 
@@ -353,107 +270,52 @@
             const container = document.getElementById('dynamic-text');
             let html = ``;
 
-            if(data.definitions && data.definitions.length > 0) {
-                html += `<h3 style="margin: 20px 0 10px; font-weight: 800; color: var(--accent-blue);">Key Terms</h3>`;
-                data.definitions.forEach(d => {
-                    html += `<div class="definition-box"><strong>${d.term}</strong><p>${d.definition}</p></div>`;
-                });
-            }
+            if (isIndic) {
+                // Indic Style Layout (Aashayam focus)
+                html += `<div class="extra-fact-box"><span class="extra-fact-tag">Author / Kavi Profile</span><p>${data.author}</p></div>`;
+                
+                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Aashayam (Chapter Summary)</h3>`;
+                html += `<div style="line-height: 2; color: #eee; font-size: 1.15rem; background: rgba(255,255,255,0.02); padding: 30px; border-radius: 20px;">${data.aashayam}</div>`;
 
-            if(data.points && data.points.length > 0) {
-                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Core Concepts</h3>`;
-                data.points.forEach((p, i) => {
-                    const text = p.isHighlighted ? `<span class="highlight-yellow">${p.text}</span>` : p.text;
-                    html += `<div class="main-point"><span class="point-bullet">${(i+1)}</span><div>${text}</div></div>`;
+                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Key Highlights</h3>`;
+                data.key_points.forEach((p, i) => {
+                    html += `<div class="main-point"><span class="point-bullet">✦</span><div>${p}</div></div>`;
                 });
-            }
 
-            if(data.narrative) {
-                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">In-Depth Analysis</h3>`;
-                html += `<div style="line-height: 1.8; color: #ccc; font-size: 1.1rem; margin-bottom: 40px;">${data.narrative}</div>`;
-            }
-
-            if(data.extra_facts && data.extra_facts.length > 0) {
-                data.extra_facts.forEach(f => {
-                    html += `<div class="extra-fact-box"><span class="extra-fact-tag">Deep Dive: ${f.title}</span><p>${f.text}</p></div>`;
+                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Essay & Important Questions</h3>`;
+                data.essay_questions.forEach((item, i) => {
+                    html += `<div class="definition-box">
+                        <strong style="color: var(--accent-yellow)">Q${i+1}: ${item.q}</strong>
+                        <p style="margin-top:10px; opacity: 0.9;">${item.a}</p>
+                    </div>`;
                 });
+
+                document.getElementById('initial-instruction').innerText = "Reading Mode: Literary Analysis and Aashayam focus.";
+            } else {
+                // Standard English Style (Same as before)
+                if(data.definitions) {
+                    html += `<h3 style="margin: 20px 0 10px; font-weight: 800; color: var(--accent-blue);">Key Terms</h3>`;
+                    data.definitions.forEach(d => html += `<div class="definition-box"><strong>${d.term}</strong><p>${d.definition}</p></div>`);
+                }
+                if(data.points) {
+                    html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Core Concepts</h3>`;
+                    data.points.forEach((p, i) => html += `<div class="main-point"><span class="point-bullet">${(i+1)}</span><div>${p.text}</div></div>`);
+                }
+                html += `<h3 style="margin: 40px 0 20px; font-weight: 800; color: var(--accent-blue);">Analysis</h3>`;
+                html += `<div style="line-height: 1.8; color: #ccc;">${data.narrative}</div>`;
+                
+                document.getElementById('start-quiz-btn').style.display = 'flex';
+                window.quizPool = data.quiz_questions; 
             }
 
             container.innerHTML = html;
-            document.getElementById('start-quiz-btn').style.display = 'flex';
             lucide.createIcons();
         }
 
         function startQuiz() {
-            if (!quizPool || quizPool.length === 0) return;
-            currentQuestionIdx = 0;
-            score = 0;
-            document.getElementById('feedback-area').innerHTML = ''; 
-            showQuestion();
-            document.getElementById('quiz-overlay').style.display = 'flex';
-        }
-
-        function showQuestion() {
-            const q = quizPool[currentQuestionIdx];
-            document.getElementById('quiz-counter').innerText = `Question ${currentQuestionIdx + 1} of ${quizPool.length}`;
-            document.getElementById('quiz-question').innerText = q.question;
-            document.getElementById('quiz-progress-bar').style.width = `${((currentQuestionIdx) / quizPool.length) * 100}%`;
-            
-            const optContainer = document.getElementById('quiz-options');
-            optContainer.innerHTML = '';
-            
-            q.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'quiz-option';
-                btn.innerText = opt;
-                btn.onclick = () => handleAnswer(idx);
-                optContainer.appendChild(btn);
-            });
-        }
-
-        function handleAnswer(selectedIdx) {
-            const q = quizPool[currentQuestionIdx];
-            const isCorrect = selectedIdx === q.correct_index;
-            if (isCorrect) score++;
-
-            const feedback = document.getElementById('feedback-area');
-            const card = document.createElement('div');
-            card.className = `feedback-card ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}`;
-            card.innerHTML = `
-                <div style="font-weight: 800; margin-bottom: 5px; color: ${isCorrect ? 'var(--accent-green)' : '#ff4b4b'}">
-                    Q${currentQuestionIdx + 1}: ${isCorrect ? 'Correct' : 'Incorrect'}
-                </div>
-                <p style="color: white; font-size: 0.85rem; opacity: 0.9;">${q.explanation}</p>
-            `;
-            feedback.prepend(card);
-            feedback.scrollTop = 0;
-
-            currentQuestionIdx++;
-
-            if (currentQuestionIdx < quizPool.length) {
-                showQuestion();
-            } else {
-                finishQuiz();
-            }
-        }
-
-        function finishQuiz() {
-            document.getElementById('quiz-overlay').style.display = 'none';
-            const feedback = document.getElementById('feedback-area');
-            const resultCard = document.createElement('div');
-            resultCard.className = 'feedback-card';
-            resultCard.style.background = 'var(--accent-purple)';
-            resultCard.style.borderColor = 'transparent';
-            resultCard.innerHTML = `
-                <div style="font-weight: 900; font-size: 1.1rem; margin-bottom: 8px;">Chapter Assessment Complete!</div>
-                <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 10px;">${score} / ${quizPool.length}</div>
-                <p style="font-size: 0.8rem; opacity: 0.9;">You've finished the review for "${plan.chapters[activeIdx].title}".</p>
-            `;
-            feedback.prepend(resultCard);
-        }
-
-        function closeQuiz() {
-            document.getElementById('quiz-overlay').style.display = 'none';
+            // Only enabled for non-Indic
+            localStorage.setItem('lumina_current_quiz', JSON.stringify(window.quizPool));
+            window.location.href = 'exams.html'; // Or show modal logic if you prefer
         }
     </script>
 </body>
