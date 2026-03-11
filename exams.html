@@ -37,7 +37,7 @@
 
         .question-area {
             flex: 1;
-            padding: 60px;
+            padding: 40px 60px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -45,7 +45,7 @@
         }
 
         .exam-header {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .exam-header p {
@@ -68,101 +68,125 @@
             background: var(--glass);
             border-radius: 2px;
             margin-top: 20px;
+            position: relative;
         }
 
         .progress-fill {
             height: 100%;
             background: var(--accent-blue);
             width: 0%;
-            transition: 0.5s ease;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 10px var(--accent-blue);
         }
 
         .question-card {
             background: var(--glass);
             border: 1px solid var(--glass-border);
-            padding: 30px;
-            border-radius: 20px;
+            padding: 35px;
+            border-radius: 24px;
             margin-bottom: 30px;
-            animation: slideUp 0.4s ease-out;
+            animation: slideUp 0.5s ease-out;
+            position: relative;
         }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .question-type-badge {
+            position: absolute;
+            top: -12px;
+            right: 30px;
+            background: var(--accent-purple);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
 
         .question-text {
-            font-size: 1.2rem;
-            line-height: 1.5;
-            margin-bottom: 25px;
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
             font-weight: 600;
         }
 
         .options-grid {
             display: grid;
-            gap: 12px;
+            gap: 15px;
         }
 
         .option-btn {
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--glass-border);
-            padding: 18px 24px;
-            border-radius: 12px;
+            padding: 20px 24px;
+            border-radius: 14px;
             color: white;
             text-align: left;
             cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.95rem;
-            position: relative;
+            transition: 0.2s all;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .option-btn:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.08);
             border-color: var(--accent-blue);
+            transform: translateX(5px);
         }
 
         .option-btn.selected {
             background: rgba(112, 0, 255, 0.2);
             border-color: var(--accent-purple);
-            box-shadow: inset 0 0 15px rgba(112, 0, 255, 0.3);
+            box-shadow: inset 0 0 20px rgba(112, 0, 255, 0.2);
         }
 
         .free-response {
             width: 100%;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.04);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            border-radius: 14px;
             color: white;
-            padding: 20px;
+            padding: 24px;
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 1.05rem;
             box-sizing: border-box;
-            resize: vertical;
-            min-height: 120px;
+            resize: none;
+            min-height: 150px;
             margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .free-response:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background: rgba(255,255,255,0.07);
         }
 
         .guide-sidebar {
-            width: 380px;
+            width: 400px;
             background: rgba(255,255,255,0.01);
             display: flex;
             flex-direction: column;
             padding: 40px;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(30px);
         }
 
         .guide-status {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: var(--accent-blue);
-            font-size: 0.8rem;
-            font-weight: 700;
+            font-size: 0.85rem;
+            font-weight: 800;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         #guide-content {
-            font-size: 0.95rem;
-            line-height: 1.7;
+            font-size: 1rem;
+            line-height: 1.8;
             color: var(--text-dim);
         }
 
@@ -170,58 +194,64 @@
             background: rgba(112, 0, 255, 0.08);
             border: 1px solid rgba(112, 0, 255, 0.3);
             border-left: 4px solid var(--accent-purple);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 24px;
+            border-radius: 14px;
             margin-top: 30px;
-            animation: fadeIn 0.6s ease;
+            animation: fadeIn 0.8s ease;
             font-style: italic;
             color: var(--text-main);
+            font-size: 0.95rem;
         }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .btn-action {
             background: var(--accent-blue);
             color: black;
             border: none;
-            padding: 18px 30px;
-            border-radius: 12px;
+            padding: 20px 30px;
+            border-radius: 14px;
             font-weight: 800;
             cursor: pointer;
             width: 100%;
             margin-top: auto;
             transition: 0.3s;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+            font-size: 0.9rem;
         }
 
         .btn-action:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
         }
 
         .btn-action:disabled {
-            opacity: 0.5;
-            cursor: wait;
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(1);
         }
 
         #loader {
             position: fixed;
             inset: 0;
             background: var(--bg-dark);
-            z-index: 100;
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
         }
 
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 2px solid var(--glass-border);
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 212, 255, 0.1);
             border-top-color: var(--accent-blue);
             border-radius: 50%;
-            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-            margin-bottom: 24px;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin-bottom: 30px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -231,13 +261,14 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <p id="loader-text" style="letter-spacing: 1px; font-weight: 500; opacity: 0.8;">LUMINA IS AUTHENTICATING CONTEXT...</p>
+        <p id="loader-text" style="letter-spacing: 2px; font-weight: 600; font-size: 0.9rem; color: var(--accent-blue);">NEURAL SYNC IN PROGRESS...</p>
+        <p style="color: var(--text-dim); margin-top: 10px; font-size: 0.8rem;">Synthesizing questions based on content depth.</p>
     </div>
 
     <div class="exam-layout">
         <div class="question-area">
             <div class="exam-header">
-                <p id="subject-tag">Subject</p>
+                <p id="subject-tag">Module</p>
                 <h1 id="chapter-title">Guided Assessment</h1>
                 <div class="progress-bar-container">
                     <div class="progress-fill" id="progress"></div>
@@ -246,29 +277,27 @@
 
             <div id="question-container"></div>
 
-            <button class="btn-action" id="submit-btn" onclick="handleSubmit()">Authenticate Reasoning</button>
+            <button class="btn-action" id="submit-btn" onclick="handleSubmit()">Validate Logic</button>
         </div>
 
         <div class="guide-sidebar">
             <div class="guide-status">
-                <i data-lucide="sparkles" size="16"></i>
-                Lumina's Presence
+                <i data-lucide="brain-circuit" size="18"></i>
+                Lumina Intelligence
             </div>
             <div id="guide-content">
-                Verification in progress. Maintain focus.
+                Preparing your cognitive evaluation. Each question is calibrated to your specific learning data.
             </div>
             <div id="hint-container"></div>
         </div>
     </div>
 
     <script>
-        // Enhanced Persistence Logic: Ensures we don't lose the active chapter
-        const plan = JSON.parse(localStorage.getItem('lumina_active_plan')) || { subject: "General", chapters: [] };
+        const plan = JSON.parse(localStorage.getItem('lumina_active_plan')) || { subject: "General Intelligence", chapters: [] };
         const groqKey = localStorage.getItem('lumina_groq_key');
         
-        // Priority: currentChapter (temp) -> First uncompleted chapter -> Default
-        const activeChapterTitle = plan?.currentChapter || plan?.chapters?.find(c => !c.completed)?.title || "Core Principles";
-        const activeChapterDetails = plan?.currentDetails || plan?.chapters?.find(c => !c.completed)?.details || "";
+        const activeChapterTitle = plan?.currentChapter || plan?.chapters?.find(c => !c.completed)?.title || "Core Concepts";
+        const activeChapterDetails = plan?.currentDetails || plan?.chapters?.find(c => !c.completed)?.details || "Standard Assessment Principles";
 
         let questions = [];
         let currentIdx = 0;
@@ -283,36 +312,51 @@
 
         const currentLang = detectLanguage();
 
-        // Calculate dynamic question count based on depth of content
+        // SCALED QUESTION LOGIC: More content = More questions (Min 5, Max 15)
         function calculateQuestionCount() {
             const detailLength = activeChapterDetails.length;
-            if (detailLength > 1000) return 7;
-            if (detailLength > 500) return 5;
-            return 3;
+            if (detailLength > 3000) return 15;
+            if (detailLength > 2000) return 12;
+            if (detailLength > 1000) return 10;
+            if (detailLength > 500) return 7;
+            return 5; 
         }
 
         async function generateExam() {
             if (!groqKey) {
-                document.getElementById('loader').innerHTML = "<p>Please ensure your Lumina Key is active.</p>";
+                document.getElementById('loader').innerHTML = "<p style='color:red'>Critical Error: API Key Missing.</p>";
                 return;
             }
 
             const qCount = calculateQuestionCount();
-            let systemPrompt = "";
-
-            if (currentLang === 'malayalam') {
-                systemPrompt = `You are the Malayalam Literature Expert for Lumina. Generate ${qCount} questions about ${activeChapterTitle}. 
-                Include: 1. Author/Genre identification. 2. Grammar: 'Split and write' (sandhi) or 'Divide words'. 3. One word/Short answers. 4. Creative/Long answer prompt. 
-                Format: Return JSON object { "questions": [{ "type": "mcq|text", "question": "string", "options": ["str"] (if mcq), "correctIndex": number (if mcq) }] }`;
-            } else if (currentLang === 'hindi') {
-                systemPrompt = `You are the Hindi Literature Expert for Lumina. Generate ${qCount} questions about ${activeChapterTitle}. 
-                Include: 1. Author/Genre identification. 2. Grammar: Find 'Visheshan' (adjectives) or word meanings. 3. One word/Short answers. 4. Creative prompt. 
-                Format: Return JSON object { "questions": [{ "type": "mcq|text", "question": "string", "options": ["str"] (if mcq), "correctIndex": number (if mcq) }] }`;
-            } else {
-                systemPrompt = `Generate ${qCount} precise multiple choice questions for ${activeChapterTitle}.
-                Focus on deep conceptual understanding.
-                Format: Return JSON object { "questions": [{ "type": "mcq", "question": "string", "options": ["str","str","str","str"], "correctIndex": number }] }`;
-            }
+            
+            const systemPrompt = `You are Lumina, an advanced pedagogical AI.
+            Generate exactly ${qCount} high-quality questions for the topic: "${activeChapterTitle}".
+            
+            RULES:
+            1. MIXED FORMAT: Include 60% Multiple Choice (MCQ) and 40% Text-based reasoning.
+            2. DEFINITION FOCUS: At least 2 questions must ask for the definition or core essence of a primary term in the text.
+            3. HIERARCHY: Start with basic definitions, move to conceptual application, and end with a complex reasoning prompt.
+            4. LANGUAGE: Generate in ${currentLang}.
+            5. JSON ONLY: Output only a JSON object.
+            
+            JSON Structure:
+            {
+                "questions": [
+                    {
+                        "type": "mcq",
+                        "badge": "Definition | Concept | Analysis",
+                        "question": "string",
+                        "options": ["str", "str", "str", "str"],
+                        "correctIndex": number
+                    },
+                    {
+                        "type": "text",
+                        "badge": "Deep Reasoning",
+                        "question": "string"
+                    }
+                ]
+            }`;
 
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -322,9 +366,10 @@
                         model: "llama-3.3-70b-versatile",
                         messages: [
                             { role: "system", content: systemPrompt },
-                            { role: "user", content: `Subject: ${plan.subject}. Topic: ${activeChapterTitle}. Details: ${activeChapterDetails}` }
+                            { role: "user", content: `CONTEXT DATA: Subject: ${plan.subject}. Topic: ${activeChapterTitle}. Study Material: ${activeChapterDetails}` }
                         ],
-                        response_format: { type: "json_object" }
+                        response_format: { type: "json_object" },
+                        temperature: 0.7
                     })
                 });
 
@@ -338,8 +383,8 @@
                 renderQuestion();
             } catch (e) {
                 console.error(e);
-                document.getElementById('loader-text').innerText = "CALIBRATING LINGUISTIC MODULES...";
-                setTimeout(generateExam, 2000);
+                document.getElementById('loader-text').innerText = "RETRYING NEURAL CONSTRUCTION...";
+                setTimeout(generateExam, 3000);
             }
         }
 
@@ -347,20 +392,29 @@
             const q = questions[currentIdx];
             const container = document.getElementById('question-container');
             selectedOption = null;
+            
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "Authenticate Reasoning";
+            btn.innerText = (currentIdx === questions.length - 1) ? "Finalize Mastery" : "Validate Logic";
             btn.disabled = false;
+            btn.style.background = "var(--accent-blue)";
 
-            let html = `<div class="question-card"><div class="question-text">${q.question}</div>`;
+            let html = `
+                <div class="question-card">
+                    <div class="question-type-badge">${q.badge || 'Cognitive Task'}</div>
+                    <div class="question-text">${q.question}</div>
+            `;
             
             if (q.type === 'mcq') {
                 html += `<div class="options-grid">
                     ${q.options.map((opt, i) => `
-                        <button class="option-btn" onclick="selectOpt(${i}, this)">${opt}</button>
+                        <button class="option-btn" onclick="selectOpt(${i}, this)">
+                            <span style="opacity:0.4; font-weight:800">${String.fromCharCode(65+i)}</span>
+                            <span>${opt}</span>
+                        </button>
                     `).join('')}
                 </div>`;
             } else {
-                html += `<textarea id="text-answer" class="free-response" placeholder="Type your response here..."></textarea>`;
+                html += `<textarea id="text-answer" class="free-response" placeholder="Explain your reasoning or provide the definition here..."></textarea>`;
             }
             
             html += `</div>`;
@@ -392,7 +446,7 @@
                 }
             } else {
                 const ans = document.getElementById('text-answer').value;
-                if (ans.trim().length < 3) return;
+                if (ans.trim().length < 5) return;
                 btn.disabled = true;
                 evaluateTextResponse(q, ans);
             }
@@ -400,7 +454,7 @@
 
         async function evaluateTextResponse(q, ans) {
             const hintContainer = document.getElementById('hint-container');
-            hintContainer.innerHTML = '<div class="hint-box">Lumina is analyzing your prose...</div>';
+            hintContainer.innerHTML = '<div class="hint-box">Synthesizing response quality...</div>';
             
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -409,40 +463,40 @@
                     body: JSON.stringify({
                         model: "llama-3.1-8b-instant",
                         messages: [
-                            { role: "system", content: "You are Lumina. Evaluate the student answer. If it's logically correct or contextually relevant, respond ONLY with 'CORRECT'. Otherwise, give a brief nudge. Max 1 sentence." },
-                            { role: "user", content: `Question: ${q.question}. Student Answer: ${ans}.` }
+                            { role: "system", content: "You are Lumina. Critique the student's answer. If it's accurate and covers the core points, respond ONLY with 'PASS'. If it's missing depth or incorrect, provide a supportive nudge to help them improve. Be brief (1 sentence)." },
+                            { role: "user", content: `Topic: ${activeChapterTitle}. Question: ${q.question}. Student Answer: ${ans}.` }
                         ]
                     })
                 });
                 const data = await response.json();
                 const feedback = data.choices[0].message.content;
                 
-                if (feedback.toUpperCase().includes('CORRECT')) {
+                if (feedback.toUpperCase().includes('PASS')) {
                     handleSuccess();
                 } else {
                     hintContainer.innerHTML = `<div class="hint-box">${feedback}</div>`;
                     document.getElementById('submit-btn').disabled = false;
                 }
             } catch (e) {
-                handleSuccess(); // Fallback if API fails
+                handleSuccess(); 
             }
         }
 
         function handleSuccess() {
             const btn = document.getElementById('submit-btn');
-            btn.innerText = "Access Granted";
+            btn.innerText = "Verification Success";
             btn.style.background = "var(--success)";
+            
             setTimeout(() => {
-                btn.style.background = "var(--accent-blue)";
                 currentIdx++;
                 if (currentIdx >= questions.length) finishExam();
                 else renderQuestion();
-            }, 800);
+            }, 1000);
         }
 
         async function getNudge(questionObj, chosenAnswer) {
             const hintContainer = document.getElementById('hint-container');
-            hintContainer.innerHTML = '<div class="hint-box">Reflecting on your logic...</div>';
+            hintContainer.innerHTML = '<div class="hint-box">Recalibrating perspective...</div>';
             try {
                 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
@@ -450,8 +504,8 @@
                     body: JSON.stringify({
                         model: "llama-3.1-8b-instant",
                         messages: [
-                            { role: "system", content: "Briefly nudge the student to the correct answer without giving it away. Max 1 sentence." },
-                            { role: "user", content: `Question: ${questionObj.question}. Correct: ${questionObj.options[questionObj.correctIndex]}. Chosen: ${chosenAnswer}.` }
+                            { role: "system", content: "Don't give the answer. Provide a subtle hint pointing to why the chosen answer is incorrect or what they should focus on. 1 sentence max." },
+                            { role: "user", content: `Question: ${questionObj.question}. Correct Concept: ${questionObj.options[questionObj.correctIndex]}. Student Wrong Choice: ${chosenAnswer}.` }
                         ]
                     })
                 });
@@ -465,24 +519,20 @@
 
         function finishExam() {
             const updatedPlan = JSON.parse(localStorage.getItem('lumina_active_plan')) || plan;
-            
-            // Mark chapter as completed in the main structure
             const chapIdx = updatedPlan.chapters.findIndex(c => c.title === activeChapterTitle);
             if(chapIdx !== -1) updatedPlan.chapters[chapIdx].completed = true;
-            
-            // Clear temporary context
-            delete updatedPlan.currentChapter;
-            delete updatedPlan.currentDetails;
             
             localStorage.setItem('lumina_active_plan', JSON.stringify(updatedPlan));
             
             document.getElementById('progress').style.width = `100%`;
             document.getElementById('question-container').innerHTML = `
-                <div class="question-card" style="text-align: center; padding: 50px;">
-                    <i data-lucide="check-circle" size="64" style="color: var(--success); margin-bottom: 24px;"></i>
-                    <h2>Mastery Attained</h2>
-                    <p style="color: var(--text-dim); margin-bottom: 30px;">Your understanding of ${activeChapterTitle} has been verified.</p>
-                    <button class="btn-action" onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
+                <div class="question-card" style="text-align: center; padding: 60px 40px;">
+                    <div style="background: rgba(0, 255, 136, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
+                         <i data-lucide="award" size="40" style="color: var(--success);"></i>
+                    </div>
+                    <h2 style="font-size: 2rem; margin-bottom: 10px;">Mastery Established</h2>
+                    <p style="color: var(--text-dim); margin-bottom: 40px; line-height: 1.6;">You have successfully navigated the ${questions.length} cognitive gates for <b>${activeChapterTitle}</b>. Your profile has been updated.</p>
+                    <button class="btn-action" onclick="window.location.href='dashboard.html'">Sync to Dashboard</button>
                 </div>`;
             lucide.createIcons();
         }
