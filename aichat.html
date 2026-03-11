@@ -262,9 +262,16 @@
         let plan = JSON.parse(localStorage.getItem('lumina_active_plan')) || defaultPlan;
         const groqKey = localStorage.getItem('lumina_groq_key') || "";
         
-        const activeChapter = plan.chapters.find(c => !c.completed) || plan.chapters[0];
+        // --- UPDATED LOGIC TO LOAD CLICKED CHAPTER ---
+        const chapterIndex = parseInt(localStorage.getItem('lumina_active_chapter_index'));
+        let activeChapter;
+        if (!isNaN(chapterIndex) && plan.chapters[chapterIndex]) {
+            activeChapter = plan.chapters[chapterIndex];
+        } else {
+            activeChapter = plan.chapters.find(c => !c.completed) || plan.chapters[0];
+        }
+        // ---------------------------------------------
         
-        // UPDATED: Milestones designed for full, comprehensive chapter mastery
         const milestones = [
             "Chapter Overview & Scope",
             "Definitions & Core Concepts",
@@ -307,7 +314,6 @@
             document.getElementById('active-topic-title').innerText = activeChapter.title;
             updateProgressUI();
 
-            // UPDATED: System prompt designed to process and teach massive chapter texts
             const systemPrompt = `
                 You are Lumina, an elite Socratic Tutor. Your objective is to help the student achieve absolute mastery of an ENTIRE chapter.
                 
@@ -364,13 +370,11 @@
                 const data = await response.json();
                 let aiMsg = data.choices[0].message.content;
                 
-                // Logic for milestone progression based on AI's evaluation
                 if (aiMsg.includes("[ADVANCE]")) {
                     aiMsg = aiMsg.replace("[ADVANCE]", "").trim();
                     if (currentMilestoneIndex < milestones.length - 1) {
                         currentMilestoneIndex++;
                         updateProgressUI();
-                        // Update system prompt to reflect the new milestone for subsequent turns
                         chatHistory[0].content = chatHistory[0].content.replace(/CURRENT PHASE: .*/, `CURRENT PHASE: ${milestones[currentMilestoneIndex]}`);
                     }
                 }
