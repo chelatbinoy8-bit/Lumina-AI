@@ -152,6 +152,20 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .engine-status {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-dim);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .dot-active { background: #34c759; box-shadow: 0 0 5px #34c759; }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
@@ -167,6 +181,9 @@
     <div class="dashboard">
         <div class="header">
             <div>
+                <div class="engine-status" id="engineStatus">
+                    <span class="dot dot-active"></span> Engine Status: Optimizing
+                </div>
                 <h1 id="subTitle" style="font-size: 2.2rem; font-weight: 800; letter-spacing: -1.5px;">Learning Hub</h1>
                 <p id="dateTarget" style="color: var(--accent-blue); font-size: 0.8rem; font-weight: 700; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;"></p>
             </div>
@@ -207,8 +224,25 @@
     </div>
 
     <script>
+        // Fetch keys and plan
+        const groqApiKey = localStorage.getItem('lumina_groq_key');
+        const geminiApiKey = localStorage.getItem('lumina_gemini_key');
         let plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
+
         if(!plan) window.location.href = 'student-home.html';
+
+        function updateEngineLabel() {
+            const status = document.getElementById('engineStatus');
+            if (groqApiKey && geminiApiKey) {
+                status.innerHTML = `<span class="dot dot-active"></span> Llama 3 + Gemini Flash Protected`;
+            } else if (groqApiKey) {
+                status.innerHTML = `<span class="dot dot-active"></span> Llama 3 Active`;
+            } else if (geminiApiKey) {
+                status.innerHTML = `<span class="dot dot-active"></span> Gemini Flash Active`;
+            } else {
+                status.innerHTML = `<span class="dot" style="background: var(--danger)"></span> No Active Engine`;
+            }
+        }
 
         function isIndicScript(text) {
             const malayalam = /[\u0D00-\u0D7F]/;
@@ -232,7 +266,6 @@
                 item.className = 'chapter-item';
                 if(ch.completed) item.style.borderLeft = '4px solid var(--accent-purple)';
                 
-                // FALLBACK: If tagline doesn't exist yet, we show a brief snippet of details
                 const tagline = ch.tagline || (ch.details ? ch.details.substring(0, 60) + "..." : "Deep study module");
 
                 item.innerHTML = `
@@ -274,6 +307,7 @@
             document.getElementById('sProg').innerText = Math.round((done / plan.chapters.length) * 100) + "%";
             
             lucide.createIcons();
+            updateEngineLabel();
         }
 
         function navigateWithContext(url, index) {
@@ -282,12 +316,13 @@
             const currentPlan = JSON.parse(localStorage.getItem('lumina_active_plan'));
             const chapter = currentPlan.chapters[index];
             
-            // Persist the current index for the receiving pages
             localStorage.setItem('lumina_active_chapter_index', index);
             
-            // Update context in plan object
             currentPlan.currentChapter = chapter.title;
             currentPlan.currentDetails = chapter.details;
+            
+            // Note: The receiving pages (summaries.html, etc.) should independently 
+            // check for both lumina_groq_key and lumina_gemini_key.
             localStorage.setItem('lumina_active_plan', JSON.stringify(currentPlan));
             
             window.location.href = url;
