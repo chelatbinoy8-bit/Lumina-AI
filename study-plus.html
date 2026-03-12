@@ -62,12 +62,12 @@
         h2 { font-size: 1.8rem; margin-bottom: 10px; font-weight: 800; letter-spacing: -0.5px; }
         p.subtitle { color: var(--text-dim); margin-bottom: 30px; font-size: 0.95rem; line-height: 1.5; }
 
-        #apiOverlay {
+        .overlay {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.95);
             z-index: 100;
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(15px);
@@ -80,6 +80,7 @@
             border: 1px solid var(--glass-border);
             width: 420px;
             text-align: center;
+            animation: fadeIn 0.3s ease;
         }
 
         .form-group { margin-bottom: 25px; text-align: left; }
@@ -96,6 +97,8 @@
             font-size: 1rem;
             transition: 0.3s;
         }
+
+        input:focus { border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(112,0,255,0.2); }
 
         .upload-zone {
             border: 2px dashed var(--glass-border);
@@ -128,6 +131,17 @@
             gap: 10px;
             font-size: 1rem;
         }
+        .btn-primary:hover { filter: brightness(1.2); transform: translateY(-2px); }
+
+        .engine-indicator {
+            font-size: 0.65rem;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: inline-block;
+            border: 1px solid var(--glass-border);
+        }
 
         .error-box {
             background: rgba(255, 59, 48, 0.1);
@@ -143,15 +157,29 @@
 </head>
 <body>
 
-    <div id="apiOverlay">
+    <!-- Groq Auth Overlay -->
+    <div id="groqOverlay" class="overlay">
         <div class="api-modal">
-            <i data-lucide="shield-check" size="40" style="color: var(--accent-purple); margin-bottom: 20px;"></i>
-            <h3>Groq Authentication</h3>
-            <p style="color: var(--text-dim); font-size: 0.85rem; margin: 10px 0 25px;">Enter your Groq API key (starts with gsk_)</p>
+            <i data-lucide="zap" size="40" style="color: var(--accent-purple); margin-bottom: 20px;"></i>
+            <h3>Primary Engine</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin: 10px 0 25px;">Enter Groq API Key (Starts with gsk_)</p>
             <div class="form-group">
                 <input type="password" id="groqKeyInput" placeholder="gsk_xxxxxxxxxxxxxx">
             </div>
-            <button class="btn-primary" onclick="saveKey()">Initialize Engine</button>
+            <button class="btn-primary" onclick="saveGroqKey()">Next Configuration</button>
+        </div>
+    </div>
+
+    <!-- Gemini Auth Overlay -->
+    <div id="geminiOverlay" class="overlay">
+        <div class="api-modal">
+            <i data-lucide="sparkles" size="40" style="color: var(--accent-blue); margin-bottom: 20px;"></i>
+            <h3>Backup Engine</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin: 10px 0 25px;">Enter Gemini API Key (Starts with AIza)</p>
+            <div class="form-group">
+                <input type="password" id="geminiKeyInput" placeholder="AIzaSy...">
+            </div>
+            <button class="btn-primary" onclick="saveGeminiKey()">Finish Setup</button>
         </div>
     </div>
 
@@ -159,6 +187,7 @@
 
     <div class="maker-card">
         <div class="step active" id="step1">
+            <div id="engineTag" class="engine-indicator">Dual Engine Ready</div>
             <h2>Set Your Milestone</h2>
             <p class="subtitle">Define your goal and target date.</p>
             <div class="form-group">
@@ -174,7 +203,7 @@
 
         <div class="step" id="step2">
             <h2>Import Content</h2>
-            <p class="subtitle">Upload your full .txt file. Llama 3 will map every single chapter exactly as written.</p>
+            <p class="subtitle">Upload your .txt file. Our AI will map every single chapter exactly as written.</p>
             <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
                 <i data-lucide="upload-cloud" size="48" style="color: var(--accent-blue); margin-bottom: 15px;"></i>
                 <div style="font-weight: 700;">Select .txt File</div>
@@ -190,21 +219,53 @@
 
     <script>
         let groqApiKey = localStorage.getItem('lumina_groq_key') || "";
-        if(groqApiKey) document.getElementById('apiOverlay').style.display = 'none';
+        let geminiApiKey = localStorage.getItem('lumina_gemini_key') || "";
 
-        function saveKey() {
+        // AUTH SEQUENCE LOGIC
+        window.onload = () => {
+            if (!groqApiKey) {
+                document.getElementById('groqOverlay').style.display = 'flex';
+            } else if (!geminiApiKey) {
+                document.getElementById('geminiOverlay').style.display = 'flex';
+            }
+            updateEngineTag();
+            lucide.createIcons();
+        };
+
+        function saveGroqKey() {
             const key = document.getElementById('groqKeyInput').value.trim();
-            if(!key.startsWith('gsk_')) return alert("Invalid Key");
-            localStorage.setItem('lumina_groq_key', key);
-            groqApiKey = key;
-            document.getElementById('apiOverlay').style.display = 'none';
+            if (key) {
+                localStorage.setItem('lumina_groq_key', key);
+                groqApiKey = key;
+            }
+            document.getElementById('groqOverlay').style.display = 'none';
+            if (!geminiApiKey) {
+                document.getElementById('geminiOverlay').style.display = 'flex';
+            }
+            updateEngineTag();
+        }
+
+        function saveGeminiKey() {
+            const key = document.getElementById('geminiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('lumina_gemini_key', key);
+                geminiApiKey = key;
+            }
+            document.getElementById('geminiOverlay').style.display = 'none';
+            updateEngineTag();
+        }
+
+        function updateEngineTag() {
+            const tag = document.getElementById('engineTag');
+            if (groqApiKey && geminiApiKey) tag.innerText = "Llama 3 + Gemini Flash Active";
+            else if (groqApiKey) tag.innerText = "Llama 3 Active (No Backup)";
+            else if (geminiApiKey) tag.innerText = "Gemini Flash Active (Primary)";
         }
 
         function goToStep2() {
             if(!document.getElementById('subjectInput').value || !document.getElementById('goalDate').value) return alert("Fill all fields");
             document.getElementById('step1').classList.remove('active');
             document.getElementById('step2').classList.add('active');
-            lucide.createIcons();
         }
 
         async function handleFile(input) {
@@ -212,72 +273,92 @@
             if(!file) return;
             const text = await file.text();
             document.getElementById('processingSection').style.display = 'block';
-            processSyllabus(text);
+            
+            // Primary Attempt: Groq
+            if (groqApiKey) {
+                try {
+                    await processWithGroq(text);
+                } catch (e) {
+                    console.error("Groq Failed, trying Gemini...", e);
+                    if (geminiApiKey) await processWithGemini(text);
+                    else showError("Groq failed and no Gemini key found.");
+                }
+            } else if (geminiApiKey) {
+                await processWithGemini(text);
+            } else {
+                showError("No API keys configured. Please refresh.");
+            }
         }
 
-        async function processSyllabus(syllabus) {
+        const SYSTEM_PROMPT = `You are a High-Fidelity Academic Transcriber. 
+        Transform raw text into JSON curriculum without losing data.
+        FORMAT: {"chapters": [{"title": "...", "tagline": "...", "details": "...", "completed": false}]}
+        RULES:
+        1. NO SKIPPING: Extract EVERY chapter found.
+        2. VERBATIM: Copy content word-for-word into 'details'.
+        3. TRANSLATE: Keep 'details' original, translate 'title' & 'tagline' to English.`;
+
+        async function processWithGroq(syllabus) {
+            updateStatus("Llama 3 Engine: Mapping Roadmap...", 30);
+            const subject = document.getElementById('subjectInput').value;
+            
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: SYSTEM_PROMPT },
+                        { role: "user", content: `Subject: ${subject}\n\nCONTENT:\n${syllabus}` }
+                    ],
+                    response_format: { type: "json_object" },
+                    temperature: 0,
+                    max_tokens: 16000
+                })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            finalizePlan(JSON.parse(data.choices[0].message.content));
+        }
+
+        async function processWithGemini(syllabus) {
+            updateStatus("Gemini Engine: Mapping Roadmap...", 45);
+            const subject = document.getElementById('subjectInput').value;
+            
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nSubject: ${subject}\n\nCONTENT:\n${syllabus}` }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            const content = data.candidates[0].content.parts[0].text;
+            finalizePlan(JSON.parse(content));
+        }
+
+        function finalizePlan(planData) {
             const subject = document.getElementById('subjectInput').value;
             const date = document.getElementById('goalDate').value;
-            
-            updateStatus("Mapping Complete Roadmap...", 30);
 
-            // REFINED PROMPT: Focuses on structure and verbatim detail rather than summary.
-            const systemPrompt = `You are a High-Fidelity Academic Transcriber. 
-            Your goal is to transform a raw text file into a structured curriculum without losing ANY information.
+            if(!planData.chapters || planData.chapters.length === 0) throw new Error("No chapters detected.");
 
-            OUTPUT FORMAT: 
-            Return ONLY a JSON object: {"chapters": [{"title": "...", "tagline": "...", "details": "...", "completed": false}]}.
+            localStorage.setItem('lumina_active_plan', JSON.stringify({
+                subject: subject,
+                targetDate: date,
+                chapters: planData.chapters,
+                timestamp: new Date().getTime()
+            }));
 
-            EXTRACTION RULES:
-            1. DO NOT SKIP: You must identify and extract EVERY chapter/section in the provided text. If there are 6 chapters, I expect exactly 6 items in the JSON array.
-            2. VERBATIM DETAILS: The 'details' field must contain the FULL, ORIGINAL, UNABRIDGED text for that chapter. Do not summarize the content. Copy it word-for-word.
-            3. PREVIEW TAGLINE: Create a short (max 12 words) punchy tagline for the dashboard preview.
-            4. HIERARCHY: If you see headers like "Chapter 1", "Section 2", etc., use those as titles.
-            5. LANGUAGE: If the input text is not in English (e.g., Malayalam/Hindi), keep the 'details' in the original language but translate the 'tagline' and 'title' to English for the UI.`;
-
-            try {
-                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${groqApiKey}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: "llama-3.3-70b-versatile",
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: `Subject: ${subject}\n\nCONTENT TO EXTRACT FULLY:\n${syllabus}` }
-                        ],
-                        response_format: { type: "json_object" },
-                        temperature: 0, // Set to 0 for maximum reliability/consistency
-                        max_tokens: 16000 // Increased limit to ensure no cutoff on long notes
-                    })
-                });
-
-                const rawData = await response.json();
-                
-                if (rawData.error) throw new Error(rawData.error.message);
-                
-                const planData = JSON.parse(rawData.choices[0].message.content);
-                
-                // Final check to ensure we didn't get an empty array
-                if(!planData.chapters || planData.chapters.length === 0) throw new Error("No chapters detected. Check file content.");
-
-                localStorage.setItem('lumina_active_plan', JSON.stringify({
-                    subject: subject,
-                    targetDate: date,
-                    chapters: planData.chapters
-                }));
-
-                updateStatus("Engine Synced. Redirecting...", 100);
-                setTimeout(() => window.location.href = 'dashboard.html', 1000);
-
-            } catch (e) {
-                console.error(e);
-                document.getElementById('errorDisplay').innerText = "Engine Error: " + e.message;
-                document.getElementById('errorDisplay').style.display = 'block';
-                updateStatus("Extraction Failed.", 0);
-            }
+            updateStatus("Engine Synced. Redirecting...", 100);
+            setTimeout(() => window.location.href = 'dashboard.html', 800);
         }
 
         function updateStatus(msg, prog) {
@@ -285,7 +366,12 @@
             document.getElementById('progressBar').style.width = prog + '%';
         }
 
-        lucide.createIcons();
+        function showError(msg) {
+            const err = document.getElementById('errorDisplay');
+            err.innerText = msg;
+            err.style.display = 'block';
+            updateStatus("Extraction Failed.", 0);
+        }
     </script>
 </body>
 </html>
