@@ -85,7 +85,7 @@
         }
 
         .header { margin-bottom: 50px; }
-        .header h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-top: 10px;}
+        .header h1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; line-height: 1.1; margin-top: 10px;}
         .header p { color: var(--accent-blue); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
         .section-title {
@@ -180,10 +180,10 @@
         <div id="feedback-area">
             <div class="feedback-card">
                 <strong>Current Objective:</strong>
-                <p style="margin-top:5px; color: var(--text-dim);">Parsing full chapter context to generate extensive, non-summary mastery notes.</p>
+                <p id="objective-text" style="margin-top:5px; color: var(--text-dim);">Parsing full verbatim data to build an exhaustive knowledge graph.</p>
             </div>
             <div id="status-update" class="feedback-card" style="border-color: var(--accent-purple);">
-                <i data-lucide="loader-2" size="14" class="spin"></i> AI Reasoning in progress...
+                <i data-lucide="loader-2" size="14" class="spin"></i> Syncing all data points...
             </div>
         </div>
         <button onclick="window.history.back()" style="margin-top: auto; background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 14px; border-radius: 14px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -195,8 +195,8 @@
     <main class="content-area">
         <div id="loading">
             <i data-lucide="zap" size="48" class="spin" style="color: var(--accent-yellow); margin-bottom: 24px;"></i>
-            <h2 id="loading-text" style="font-weight: 800; font-size: 1.5rem;">Synthesizing Extensive Knowledge Base...</h2>
-            <p style="color: var(--text-dim); margin-top: 10px;">This takes a moment because we are generating full-length educational content.</p>
+            <h2 id="loading-text" style="font-weight: 800; font-size: 1.5rem;">Synthesizing Massive Knowledge Base...</h2>
+            <p style="color: var(--text-dim); margin-top: 10px;">Mapping 100% of your provided notes into educational modules.</p>
         </div>
 
         <div class="summary-container" id="summary-content" style="display: none;">
@@ -210,18 +210,9 @@
     </main>
 
     <script>
-        // Configuration
         const groqKey = localStorage.getItem('lumina_groq_key');
         const plan = JSON.parse(localStorage.getItem('lumina_active_plan'));
         const activeIdx = parseInt(localStorage.getItem('lumina_active_chapter_index')) || 0;
-
-        function isIndicScript(text) {
-            const malayalam = /[\u0D00-\u0D7F]/;
-            const hindi = /[\u0900-\u097F]/;
-            return malayalam.test(text) || hindi.test(text);
-        }
-
-        const isIndic = plan ? isIndicScript(plan.subject) : false;
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -231,33 +222,33 @@
                 document.getElementById('sub-tag').innerText = plan.subject;
                 await generateDeepNotes(targetChapter);
             } else {
-                console.error("No active plan or chapter found.");
+                document.getElementById('loading').innerHTML = `<h3>Plan missing. Please regenerate roadmap.</h3>`;
             }
         });
 
         async function generateDeepNotes(chapter) {
-            const systemPrompt = `You are a Senior Academic Researcher and Professor. 
-            TASK: Instead of a summary, generate an EXHAUSTIVE, LONG-FORM knowledge base for the topic.
-            
-            GUIDELINES:
-            1. EXTEND: Don't just summarize. If a topic mentions "Photosynthesis", explain the light-dependent and light-independent reactions in high detail.
-            2. STRUCTURE: Use academic sections.
-            3. ANALOGIES: Use real-world examples to explain complex theories.
-            4. VOLUME: Provide at least 800-1200 words of core content logic.
-            
+            const systemPrompt = `You are a Global Academic Authority. 
+            TASK: Transform the user's provided notes into a HYPER-DETAILED, EXHAUSTIVE, multi-module study guide.
+
+            CRITICAL DIRECTIVES:
+            1. FULL COVERAGE: You must look at EVERY detail provided in the "User Notes" below. If the notes cover 10 different sub-concepts, you must create 10 different sections. 
+            2. ZERO TRUNCATION: Do not choose the most interesting part; include ALL parts. 
+            3. EXPANSION: For every concept mentioned in the user notes, expand it with academic rigor (definitions, mechanisms, and importance).
+            4. LENGTH REQUIREMENT: Aim for a high-volume output (1500+ words).
+
             REQUIRED JSON STRUCTURE:
             {
-                "executive_overview": "A high-level 300-word introduction to the field and its significance.",
+                "executive_overview": "A 400-word comprehensive introduction covering the entire scope of the notes.",
                 "deep_dive_sections": [
-                    { "title": "Sub-topic Title", "content": "Extensive multi-paragraph explanation (3-4 paragraphs per sub-topic)." }
+                    { "title": "Sub-concept Title", "content": "3-5 paragraphs of dense explanation based on specific parts of the user's notes." }
                 ],
                 "technical_glossary": [
-                    { "term": "Term Name", "definition": "Exhaustive technical definition with usage context." }
+                    { "term": "Term", "definition": "Deep technical definition." }
                 ],
-                "critical_analysis": "A dedicated section discussing why this topic matters, its limitations, or its historical evolution.",
-                "mastery_points": ["Highly dense fact 1", "Dense fact 2"],
+                "structural_logic": "Explain the connection between all concepts found in the notes.",
+                "mastery_points": ["Fact 1", "Fact 2", "Fact 3", "Fact 4", "Fact 5"],
                 "exam_preparation": [
-                    { "question": "High-complexity essay question", "model_answer": "Complete 5-paragraph model answer." }
+                    { "question": "Complex Question", "model_answer": "Full 500-word academic response." }
                 ]
             }`;
 
@@ -272,10 +263,11 @@
                         model: "llama-3.3-70b-versatile",
                         messages: [
                             { role: "system", content: systemPrompt },
-                            { role: "user", content: `Subject: ${plan.subject}. Topic: ${chapter.title}. Specific Details to Expand: ${chapter.details}. Generate the most extensive notes possible.` }
+                            { role: "user", content: `Subject: ${plan.subject}. Topic: ${chapter.title}. User Notes to process fully: \n\n${chapter.details}` }
                         ],
                         response_format: { type: "json_object" },
-                        temperature: 0.6 // Slightly lower for high factual accuracy
+                        temperature: 0.4,
+                        max_tokens: 8000
                     })
                 });
 
@@ -285,25 +277,25 @@
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('loading').innerHTML = `<h3 style="color:red">Synthesis Error. Check API Connection.</h3>`;
+                document.getElementById('loading').innerHTML = `<h3 style="color:red">Synthesis Error. Check API Key.</h3>`;
             }
         }
 
         function renderDeepContent(data) {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('summary-content').style.display = 'block';
-            document.getElementById('status-update').innerHTML = `<i data-lucide="check-circle" size="14" style="color:var(--accent-green)"></i> Knowledge Base Ready`;
+            document.getElementById('status-update').innerHTML = `<i data-lucide="check-circle" size="14" style="color:var(--accent-green)"></i> Knowledge Base Synced`;
             
             const container = document.getElementById('dynamic-text');
             let html = ``;
 
             // 1. Executive Overview
-            html += `<div class="section-title"><i data-lucide="info"></i> Executive Overview</div>`;
-            html += `<div class="mastery-card" style="font-size:1.1rem; border-left: 4px solid var(--accent-purple);">${data.executive_overview}</div>`;
+            html += `<div class="section-title"><i data-lucide="info"></i> Comprehensive Overview</div>`;
+            html += `<div class="mastery-card" style="border-left: 4px solid var(--accent-purple);">${data.executive_overview}</div>`;
 
-            // 2. Technical Glossary
-            if (data.technical_glossary) {
-                html += `<div class="section-title"><i data-lucide="book-open"></i> Technical Glossary</div>`;
+            // 2. Glossary
+            if (data.technical_glossary && data.technical_glossary.length > 0) {
+                html += `<div class="section-title"><i data-lucide="book-open"></i> Exhaustive Glossary</div>`;
                 html += `<div class="definition-grid">`;
                 data.technical_glossary.forEach(item => {
                     html += `<div class="definition-item"><strong>${item.term}</strong><p style="font-size:0.9rem; opacity:0.8;">${item.definition}</p></div>`;
@@ -311,8 +303,8 @@
                 html += `</div>`;
             }
 
-            // 3. Deep Dive Sections (The core exhaustive content)
-            html += `<div class="section-title"><i data-lucide="layers"></i> Deep-Dive Exploration</div>`;
+            // 3. Deep Dives (The Core)
+            html += `<div class="section-title"><i data-lucide="layers"></i> Multi-Module Deep Dive</div>`;
             data.deep_dive_sections.forEach(section => {
                 html += `
                 <div class="mastery-card">
@@ -321,26 +313,26 @@
                 </div>`;
             });
 
-            // 4. Critical Analysis / Pro-tip
+            // 4. Structural Logic
             html += `<div class="deep-note">
-                <span class="deep-note-label">Critical Analysis & Synthesis</span>
-                <p style="font-style: italic; opacity: 0.9;">${data.critical_analysis}</p>
+                <span class="deep-note-label">Inter-Concept Connectivity</span>
+                <p style="font-style: italic; opacity: 0.9;">${data.structural_logic}</p>
             </div>`;
 
             // 5. Mastery Points
-            html += `<div class="section-title"><i data-lucide="check-circle-2"></i> High-Density Facts</div>`;
+            html += `<div class="section-title"><i data-lucide="check-circle-2"></i> High-Density Core Facts</div>`;
             html += `<div class="mastery-card">`;
             data.mastery_points.forEach(point => {
                 html += `<div class="point-row"><span class="point-bullet">✦</span><div>${point}</div></div>`;
             });
             html += `</div>`;
 
-            // 6. Exam Preparation (Essay Questions)
-            html += `<div class="section-title"><i data-lucide="award"></i> Mastery Assessment (Model Answers)</div>`;
+            // 6. Exam Prep
+            html += `<div class="section-title"><i data-lucide="award"></i> Analytical Assessment</div>`;
             data.exam_preparation.forEach((item, idx) => {
                 html += `
                 <div class="essay-box">
-                    <span class="essay-q">Question ${idx+1}: ${item.question}</span>
+                    <span class="essay-q">Evaluation ${idx+1}: ${item.question}</span>
                     <div class="essay-a">${item.model_answer}</div>
                 </div>`;
             });
